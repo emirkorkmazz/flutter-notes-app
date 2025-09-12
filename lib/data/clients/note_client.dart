@@ -12,7 +12,7 @@ abstract class NoteClient {
 
   ///
   @GET(AppUrls.getNotes)
-  Future<HttpResponse<List<GetNotesResponse>>> getNotes();
+  Future<HttpResponse<GetNotesResponse>> getNotes();
 
   ///
   @POST(AppUrls.createNote)
@@ -29,9 +29,13 @@ abstract class NoteClient {
 
   ///
   @DELETE(AppUrls.deleteNote)
-  Future<HttpResponse<void>> deleteNote(@Path('id') String id);
+  Future<HttpResponse<DeleteNoteResponse>> deleteNote(@Path('id') String id);
 
   ///
   @GET(AppUrls.getNoteById)
   Future<HttpResponse<GetNoteByIdResponse>> getNoteById(@Path('id') String id);
+
+  ///
+  @PATCH(AppUrls.restoreNote)
+  Future<HttpResponse<RestoreNoteResponse>> restoreNote(@Path('id') String id);
 }

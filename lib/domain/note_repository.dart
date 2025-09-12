@@ -5,12 +5,16 @@ import '/data/data.dart';
 
 abstract class INoteRepository {
   /// Tüm notları getir
-  Future<Result<List<GetNotesResponse>>> getNotes();
+  Future<Result<GetNotesResponse>> getNotes();
 
   /// Not oluştur
   Future<Result<CreateNoteResponse>> createNote({
     required String title,
     required String content,
+    String? startDate,
+    String? endDate,
+    bool? pinned,
+    List<NoteTag>? tags,
   });
 
   /// Not güncelle
@@ -18,6 +22,10 @@ abstract class INoteRepository {
     required String id,
     required String title,
     required String content,
+    String? startDate,
+    String? endDate,
+    bool? pinned,
+    List<NoteTag>? tags,
   });
 
   /// Not sil
@@ -25,6 +33,9 @@ abstract class INoteRepository {
 
   /// ID ile not getir
   Future<Result<GetNoteByIdResponse>> getNoteById(String id);
+
+  /// Not geri yükle
+  Future<Result<void>> restoreNote(String id);
 }
 
 @Injectable(as: INoteRepository)
@@ -34,12 +45,11 @@ class NoteRepository implements INoteRepository {
   final NoteClient noteClient;
 
   @override
-  Future<Result<List<GetNotesResponse>>> getNotes() async {
+  Future<Result<GetNotesResponse>> getNotes() async {
     try {
       final response = await noteClient.getNotes();
 
       if (response.response.statusCode == 200) {
-        // Client zaten List<GetNotesResponse> döndürüyor
         return Result.success(response.data);
       } else {
         return Result.failure(
@@ -57,9 +67,20 @@ class NoteRepository implements INoteRepository {
   Future<Result<CreateNoteResponse>> createNote({
     required String title,
     required String content,
+    String? startDate,
+    String? endDate,
+    bool? pinned,
+    List<NoteTag>? tags,
   }) async {
     try {
-      final request = CreateNoteRequest(title: title, content: content);
+      final request = CreateNoteRequest(
+        title: title,
+        content: content,
+        startDate: startDate,
+        endDate: endDate,
+        pinned: pinned,
+        tags: tags,
+      );
       final response = await noteClient.createNote(request);
 
       if (response.response.statusCode == 201) {
@@ -81,9 +102,20 @@ class NoteRepository implements INoteRepository {
     required String id,
     required String title,
     required String content,
+    String? startDate,
+    String? endDate,
+    bool? pinned,
+    List<NoteTag>? tags,
   }) async {
     try {
-      final request = UpdateNoteRequest(title: title, content: content);
+      final request = UpdateNoteRequest(
+        title: title,
+        content: content,
+        startDate: startDate,
+        endDate: endDate,
+        pinned: pinned,
+        tags: tags,
+      );
       final response = await noteClient.updateNote(id, request);
 
       if (response.response.statusCode == 200) {
@@ -124,6 +156,25 @@ class NoteRepository implements INoteRepository {
   Future<Result<GetNoteByIdResponse>> getNoteById(String id) async {
     try {
       final response = await noteClient.getNoteById(id);
+
+      if (response.response.statusCode == 200) {
+        return Result.success(response.data);
+      } else {
+        return Result.failure(
+          const AuthFailure(message: 'Not yüklenirken hata oluştu'),
+        );
+      }
+    } on Exception catch (e) {
+      return Result.failure(
+        AuthFailure(message: 'Beklenmeyen bir hata oluştu: $e'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<RestoreNoteResponse>> restoreNote(String id) async {
+    try {
+      final response = await noteClient.restoreNote(id);
 
       if (response.response.statusCode == 200) {
         return Result.success(response.data);

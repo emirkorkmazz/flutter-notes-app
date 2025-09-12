@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '/core/core.dart';
 import '/data/data.dart';
+import '/presentation/edit_note/edit_note.dart';
 import '../bloc/bloc.dart';
 
 class HomeView extends StatefulWidget {
@@ -114,6 +115,32 @@ class _HomeViewState extends State<HomeView> {
                                 color: Colors.grey,
                               ),
                             ),
+                            if (note.tags != null && note.tags!.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 4,
+                                runSpacing: 4,
+                                children:
+                                    note.tags!
+                                        .map(
+                                          (tag) => Chip(
+                                            label: Text(
+                                              tag.displayName,
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                            backgroundColor:
+                                                Colors.blue.shade100,
+                                            labelStyle: TextStyle(
+                                              color: Colors.blue.shade800,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                              ),
+                            ],
                           ],
                         ),
                         trailing: PopupMenuButton(
@@ -121,7 +148,7 @@ class _HomeViewState extends State<HomeView> {
                             if (value == 'edit' && note.id != null) {
                               _navigateToEditNote(context, note);
                             } else if (value == 'delete' && note.id != null) {
-                              _showDeleteDialog(context, note.id!);
+                              _showDeleteDialog(context, note.id ?? '');
                             }
                           },
                           itemBuilder:
@@ -162,18 +189,26 @@ class _HomeViewState extends State<HomeView> {
   }
 
   /// Edit Note sayfasına yönlendir
-  void _navigateToEditNote(BuildContext context, GetNotesResponse note) {
-    final editPath = AppRouteName.editNote.path.replaceAll(
-      ':noteId',
-      note.id ?? '',
-    );
-    context.go(
-      '$editPath?title=${Uri.encodeComponent(note.title ?? '')}&content=${Uri.encodeComponent(note.content ?? '')}',
+  void _navigateToEditNote(BuildContext context, NoteModel note) {
+    // EditNoteView'ı direkt NoteModel ile çağır
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder:
+            (context) => EditNoteView(
+              noteId: note.id ?? '',
+              initialTitle: note.title ?? '',
+              initialContent: note.content ?? '',
+              initialStartDate: note.startDate,
+              initialEndDate: note.endDate,
+              initialPinned: note.pinned ?? false,
+              initialTags: note.tags ?? [],
+            ),
+      ),
     );
   }
 
   void _showDeleteDialog(BuildContext context, String noteId) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder:
           (context) => AlertDialog(

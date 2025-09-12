@@ -18,14 +18,14 @@ final class HomeState extends Equatable {
   final HomeStatus status;
 
   /// Not listesi
-  final List<GetNotesResponse> notes;
+  final List<NoteModel> notes;
 
   /// Hata mesajı
   final String errorMessage;
 
   HomeState copyWith({
     HomeStatus? status,
-    List<GetNotesResponse>? notes,
+    List<NoteModel>? notes,
     String? errorMessage,
   }) {
     return HomeState(

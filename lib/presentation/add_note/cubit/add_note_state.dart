@@ -12,6 +12,10 @@ final class AddNoteState extends Equatable {
     this.status = AddNoteStatus.initial,
     this.title = '',
     this.content = '',
+    this.startDate,
+    this.endDate,
+    this.pinned = false,
+    this.tags = const [],
     this.isValid = false,
     this.errorMessage = '',
   });
@@ -25,6 +29,18 @@ final class AddNoteState extends Equatable {
   /// Not içeriği
   final String content;
 
+  /// Başlangıç tarihi
+  final String? startDate;
+
+  /// Bitiş tarihi
+  final String? endDate;
+
+  /// Sabitlenmiş mi
+  final bool pinned;
+
+  /// Etiketler
+  final List<NoteTag> tags;
+
   /// Form validasyonu
   final bool isValid;
 
@@ -35,6 +51,10 @@ final class AddNoteState extends Equatable {
     AddNoteStatus? status,
     String? title,
     String? content,
+    String? startDate,
+    String? endDate,
+    bool? pinned,
+    List<NoteTag>? tags,
     bool? isValid,
     String? errorMessage,
   }) {
@@ -42,11 +62,25 @@ final class AddNoteState extends Equatable {
       status: status ?? this.status,
       title: title ?? this.title,
       content: content ?? this.content,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      pinned: pinned ?? this.pinned,
+      tags: tags ?? this.tags,
       isValid: isValid ?? this.isValid,
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [status, title, content, isValid, errorMessage];
+  List<Object?> get props => [
+    status,
+    title,
+    content,
+    startDate,
+    endDate,
+    pinned,
+    tags,
+    isValid,
+    errorMessage,
+  ];
 }

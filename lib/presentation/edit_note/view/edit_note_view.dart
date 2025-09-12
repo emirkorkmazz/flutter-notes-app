@@ -10,12 +10,20 @@ class EditNoteView extends StatefulWidget {
     required this.noteId,
     required this.initialTitle,
     required this.initialContent,
+    this.initialStartDate,
+    this.initialEndDate,
+    this.initialPinned = false,
+    this.initialTags = const [],
     super.key,
   });
 
   final String noteId;
   final String initialTitle;
   final String initialContent;
+  final String? initialStartDate;
+  final String? initialEndDate;
+  final bool initialPinned;
+  final List<NoteTag> initialTags;
 
   @override
   State<EditNoteView> createState() => _EditNoteViewState();
@@ -25,18 +33,30 @@ class _EditNoteViewState extends State<EditNoteView> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _titleController;
   late final TextEditingController _contentController;
+  late final TextEditingController _startDateController;
+  late final TextEditingController _endDateController;
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.initialTitle);
     _contentController = TextEditingController(text: widget.initialContent);
+    _startDateController = TextEditingController(
+      text: widget.initialStartDate ?? '',
+    );
+    _endDateController = TextEditingController(
+      text: widget.initialEndDate ?? '',
+    );
 
     // Cubit'i initialize et
     context.read<EditNoteCubit>().initializeNote(
       noteId: widget.noteId,
       title: widget.initialTitle,
       content: widget.initialContent,
+      startDate: widget.initialStartDate,
+      endDate: widget.initialEndDate,
+      pinned: widget.initialPinned,
+      tags: widget.initialTags,
     );
   }
 
@@ -44,6 +64,8 @@ class _EditNoteViewState extends State<EditNoteView> {
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
+    _startDateController.dispose();
+    _endDateController.dispose();
     super.dispose();
   }
 
@@ -89,6 +111,14 @@ class _EditNoteViewState extends State<EditNoteView> {
               ),
             );
           }
+
+          // Tarih controller'larını state ile senkronize et
+          if (_startDateController.text != (state.startDate ?? '')) {
+            _startDateController.text = state.startDate ?? '';
+          }
+          if (_endDateController.text != (state.endDate ?? '')) {
+            _endDateController.text = state.endDate ?? '';
+          }
         },
         builder: (context, state) {
           return Padding(
@@ -111,6 +141,110 @@ class _EditNoteViewState extends State<EditNoteView> {
                         return 'Başlık gerekli';
                       }
                       return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  /// Tarih alanları
+                  Row(
+                    children: [
+                      Expanded(
+                        child: AppTextField(
+                          controller: _startDateController,
+                          hintText: 'Başlangıç tarihi',
+                          prefix: const Icon(Icons.calendar_today),
+                          readOnly: true,
+                          onTap: () => _selectStartDate(context),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: AppTextField(
+                          controller: _endDateController,
+                          hintText: 'Bitiş tarihi',
+                          prefix: const Icon(Icons.event),
+                          readOnly: true,
+                          onTap: () => _selectEndDate(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  /// Sabitleme switch'i
+                  BlocBuilder<EditNoteCubit, EditNoteState>(
+                    builder: (context, state) {
+                      return Card(
+                        child: SwitchListTile(
+                          title: const Text('Notu Sabitle'),
+                          subtitle: const Text(
+                            'Bu notu listenin üstünde göster',
+                          ),
+                          value: state.pinned,
+                          onChanged: (value) {
+                            context.read<EditNoteCubit>().pinnedChanged(value);
+                          },
+                          secondary: const Icon(Icons.push_pin),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  /// Tag seçimi
+                  BlocBuilder<EditNoteCubit, EditNoteState>(
+                    builder: (context, state) {
+                      return Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Etiketler',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              if (state.tags.isNotEmpty) ...[
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children:
+                                      state.tags
+                                          .map(
+                                            (tag) => Chip(
+                                              label: Text(tag.displayName),
+                                              onDeleted: () {
+                                                context
+                                                    .read<EditNoteCubit>()
+                                                    .tagRemoved(tag);
+                                              },
+                                              deleteIcon: const Icon(
+                                                Icons.close,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
+                                ),
+                                const SizedBox(height: 8),
+                              ],
+                              ElevatedButton.icon(
+                                onPressed: () => _showTagSelector(context),
+                                icon: const Icon(Icons.add),
+                                label: const Text('Etiket Ekle'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue.shade100,
+                                  foregroundColor: Colors.blue.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     },
                   ),
                   const SizedBox(height: 16),
@@ -181,7 +315,95 @@ class _EditNoteViewState extends State<EditNoteView> {
   /// Formu orijinal haline geri al
   void _resetForm(BuildContext context) {
     context.read<EditNoteCubit>().resetForm();
-    _titleController.text = context.read<EditNoteCubit>().state.title;
-    _contentController.text = context.read<EditNoteCubit>().state.content;
+    final state = context.read<EditNoteCubit>().state;
+    _titleController.text = state.title;
+    _contentController.text = state.content;
+    _startDateController.text = state.startDate ?? '';
+    _endDateController.text = state.endDate ?? '';
+  }
+
+  /// Başlangıç tarihi seç
+  Future<void> _selectStartDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      final formattedDate =
+          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      context.read<EditNoteCubit>().startDateChanged(formattedDate);
+    }
+  }
+
+  /// Bitiş tarihi seç
+  Future<void> _selectEndDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      final formattedDate =
+          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      context.read<EditNoteCubit>().endDateChanged(formattedDate);
+    }
+  }
+
+  /// Tag seçici göster
+  void _showTagSelector(BuildContext context) {
+    final currentTags = context.read<EditNoteCubit>().state.tags;
+    final availableTags =
+        NoteTag.values.where((tag) => !currentTags.contains(tag)).toList();
+
+    showModalBottomSheet<void>(
+      context: context,
+      builder:
+          (context) => Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Etiket Seç',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                if (availableTags.isEmpty)
+                  const Text('Tüm etiketler zaten eklenmiş')
+                else
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children:
+                        availableTags
+                            .map(
+                              (tag) => ActionChip(
+                                label: Text(tag.displayName),
+                                onPressed: () {
+                                  context.read<EditNoteCubit>().tagAdded(tag);
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            )
+                            .toList(),
+                  ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Kapat'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
   }
 }

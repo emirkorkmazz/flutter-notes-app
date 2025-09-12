@@ -35,11 +35,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           ),
         );
       },
-      (List<GetNotesResponse> notesList) {
+      (GetNotesResponse response) {
         emit(
           state.copyWith(
             status: HomeStatus.success,
-            notes: notesList,
+            notes: response.data ?? [],
             errorMessage: '',
           ),
         );
@@ -64,11 +64,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           ),
         );
       },
-      (List<GetNotesResponse> notesList) {
+      (GetNotesResponse response) {
         emit(
           state.copyWith(
             status: HomeStatus.success,
-            notes: notesList,
+            notes: response.data ?? [],
             errorMessage: '',
           ),
         );
