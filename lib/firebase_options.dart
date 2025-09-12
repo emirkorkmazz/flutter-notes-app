@@ -59,20 +59,20 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCSu4XP7G-4Go8BCBW_v66N7Qm8BH8tqyQ',
-    appId: '1:640942233522:ios:351a0e76d6459c906fb6ab',
+    appId: '1:640942233522:ios:7d7835de645f0ecd6fb6ab',
     messagingSenderId: '640942233522',
     projectId: 'fastapi-testcase',
     storageBucket: 'fastapi-testcase.firebasestorage.app',
-    iosBundleId: 'com.example.noteapp',
+    iosBundleId: 'com.ekdev.noteapp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCSu4XP7G-4Go8BCBW_v66N7Qm8BH8tqyQ',
-    appId: '1:640942233522:ios:351a0e76d6459c906fb6ab',
+    appId: '1:640942233522:ios:7d7835de645f0ecd6fb6ab',
     messagingSenderId: '640942233522',
     projectId: 'fastapi-testcase',
     storageBucket: 'fastapi-testcase.firebasestorage.app',
-    iosBundleId: 'com.example.noteapp',
+    iosBundleId: 'com.ekdev.noteapp',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
