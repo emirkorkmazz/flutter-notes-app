@@ -1,0 +1,11 @@
+ # 1. Paketi Ekle
+ # 2. YAML dosyası oluştur
+ # 3. Dosyanın içine -yani buraya- parametreleri ekle
+ # 4. Komutu çalıştır
+flutter_native_splash:
+  image: assets/icons/icAppLogo.png
+  color: "#ffffff"
+  fullscreen: true
+
+# Terminal Kodu:
+# dart run flutter_native_splash:create --path=native_splash.yaml
