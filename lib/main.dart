@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app.dart';
+import 'core/core.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -10,15 +11,17 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   /// Firebase'i initialize et
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  /// Dependency injection'ı yapılandır
+  await configureDependencies();
 
   /// Ekran yönünü sabitle
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
   /// App'i çalıştır
   runApp(const App());
 }
