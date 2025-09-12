@@ -26,3 +26,12 @@ final class DeleteNote extends HomeEvent {
   @override
   List<Object> get props => [noteId];
 }
+
+final class SearchChanged extends HomeEvent {
+  const SearchChanged(this.searchTerm);
+
+  final String searchTerm;
+
+  @override
+  List<Object> get props => [searchTerm];
+}

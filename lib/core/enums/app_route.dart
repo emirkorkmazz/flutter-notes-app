@@ -4,6 +4,8 @@ enum AppRouteName {
   login('/login'),
   register('/register'),
   home('/home'),
+  allNotes('/all-notes'),
+  settings('/settings'),
   addNote('/addNote'),
   editNote('/editNote/:noteId');
 

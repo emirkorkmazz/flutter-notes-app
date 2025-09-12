@@ -5,23 +5,23 @@ import 'package:go_router/go_router.dart';
 import '/core/core.dart';
 import '/data/data.dart';
 import '/presentation/edit_note/edit_note.dart';
-import '../bloc/bloc.dart';
+import '../cubit/cubit.dart';
 
-class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+class AllNotesView extends StatefulWidget {
+  const AllNotesView({super.key});
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<AllNotesView> createState() => _AllNotesViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _AllNotesViewState extends State<AllNotesView> {
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Sayfa açıldığında notları yükle
-    context.read<HomeBloc>().add(const LoadNotes());
+    // Sayfa açıldığında tüm notları yükle
+    context.read<AllNotesCubit>().loadAllNotes();
   }
 
   @override
@@ -32,41 +32,39 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: Assets.images.imBackgroundFirst.provider(),
-            fit: BoxFit.cover,
-          ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: Assets.images.imBackgroundFirst.provider(),
+          fit: BoxFit.cover,
         ),
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top,
-            bottom: 80, // Bottom bar yüksekliği kadar
-          ),
-          child: BlocConsumer<HomeBloc, HomeState>(
-            listener: (context, state) {
-              if (state.status == HomeStatus.failure) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.errorMessage),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            builder: (context, state) {
-              return Column(
-                children: [
-                  _buildHeader(),
-                  _buildSearchBar(),
-                  const SizedBox(height: 16),
-                  Expanded(child: _buildNotesContent(state)),
-                ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: MediaQuery.of(context).padding.top,
+          bottom: 80, // Bottom bar yüksekliği kadar
+        ),
+        child: BlocConsumer<AllNotesCubit, AllNotesState>(
+          listener: (context, state) {
+            if (state.status == AllNotesStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage),
+                  backgroundColor: Colors.red,
+                ),
               );
-            },
-          ),
+            }
+          },
+          builder: (context, state) {
+            return Column(
+              children: [
+                _buildHeader(),
+                _buildSearchBar(),
+                const SizedBox(height: 16),
+                Expanded(child: _buildAllNotesContent(state)),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -85,7 +83,7 @@ class _HomeViewState extends State<HomeView> {
           const Spacer(),
 
           const Text(
-            'Ana Sayfa',
+            'Tüm Notlar',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -118,10 +116,10 @@ class _HomeViewState extends State<HomeView> {
       child: TextField(
         controller: _searchController,
         onChanged: (value) {
-          context.read<HomeBloc>().add(SearchChanged(value));
+          context.read<AllNotesCubit>().searchChanged(value);
         },
         decoration: InputDecoration(
-          hintText: 'Notlarda ara...',
+          hintText: 'Tüm notlarda ara...',
           prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: Colors.white.withValues(alpha: 0.9),
@@ -138,24 +136,20 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
-  /// Not içeriği - Pinlenmiş ve normal notlar
-  Widget _buildNotesContent(HomeState state) {
-    if (state.status == HomeStatus.loading) {
+  /// Tüm notlar içeriği
+  Widget _buildAllNotesContent(AllNotesState state) {
+    if (state.status == AllNotesStatus.loading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (state.status == HomeStatus.success) {
+    if (state.status == AllNotesStatus.success) {
       // Arama terimine göre notları filtrele
       final filteredNotes = _filterNotes(state.notes, state.searchTerm);
-      final pinnedNotes =
-          filteredNotes.where((note) => note.pinned ?? false).toList();
-      final regularNotes =
-          filteredNotes.where((note) => note.pinned != true).toList();
 
       if (filteredNotes.isEmpty) {
         return RefreshIndicator(
           onRefresh: () async {
-            context.read<HomeBloc>().add(const RefreshNotes());
+            await context.read<AllNotesCubit>().refreshAllNotes();
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -169,7 +163,7 @@ class _HomeViewState extends State<HomeView> {
 
       return RefreshIndicator(
         onRefresh: () async {
-          context.read<HomeBloc>().add(const RefreshNotes());
+          await context.read<AllNotesCubit>().refreshAllNotes();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -177,20 +171,10 @@ class _HomeViewState extends State<HomeView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Pinlenmiş notlar bölümü
-              if (pinnedNotes.isNotEmpty) ...[
-                _buildSectionTitle('Sabitlenmiş'),
-                const SizedBox(height: 8),
-                _buildNotesList(pinnedNotes),
-                const SizedBox(height: 24),
-              ],
-
-              // Normal notlar bölümü
-              if (regularNotes.isNotEmpty) ...[
-                _buildSectionTitle('Günlük Aktif Notlar'),
-                const SizedBox(height: 8),
-                _buildNotesList(regularNotes),
-              ],
+              // Tüm Notlar başlığı
+              _buildSectionTitle('Tüm Notlar (${filteredNotes.length})'),
+              const SizedBox(height: 8),
+              _buildNotesList(filteredNotes),
             ],
           ),
         ),
@@ -312,7 +296,6 @@ class _HomeViewState extends State<HomeView> {
 
   /// Edit Note sayfasına yönlendir
   void _navigateToEditNote(BuildContext context, NoteModel note) {
-    // EditNoteView'ı direkt NoteModel ile çağır
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder:
@@ -344,7 +327,7 @@ class _HomeViewState extends State<HomeView> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.read<HomeBloc>().add(DeleteNote(noteId));
+                  context.read<AllNotesCubit>().deleteNote(noteId);
                 },
                 child: const Text('Sil'),
               ),

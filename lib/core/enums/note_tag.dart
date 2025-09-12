@@ -91,7 +91,7 @@ extension NoteTagExtension on NoteTag {
     if (values == null) return [];
 
     return values
-        .map((value) => fromApiValue(value))
+        .map(fromApiValue)
         .where((tag) => tag != null)
         .cast<NoteTag>()
         .toList();

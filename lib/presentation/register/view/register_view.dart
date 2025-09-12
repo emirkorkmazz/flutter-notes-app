@@ -139,6 +139,7 @@ class _RegisterViewState extends State<RegisterView> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       hintText: 'ornek@email.com',
+      textInputAction: TextInputAction.next,
       enabledBorderColor: Colors.white,
       focusedBorderColor: Colors.white,
       hintStyle: const TextStyle(color: Colors.white),
@@ -162,6 +163,7 @@ class _RegisterViewState extends State<RegisterView> {
     return AppTextField(
       controller: _passwordController,
       obscureText: !_isPasswordVisible,
+      textInputAction: TextInputAction.next,
       enabledBorderColor: Colors.white,
       focusedBorderColor: Colors.white,
       hintText: 'Şifrenizi girin',
@@ -197,6 +199,7 @@ class _RegisterViewState extends State<RegisterView> {
       controller: _confirmPasswordController,
       obscureText: !_isConfirmPasswordVisible,
       hintText: 'Şifrenizi tekrar girin',
+      textInputAction: TextInputAction.done,
       enabledBorderColor: Colors.white,
       focusedBorderColor: Colors.white,
       hintStyle: const TextStyle(color: Colors.white),

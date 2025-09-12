@@ -1,22 +1,22 @@
-part of 'home_bloc.dart';
+part of 'all_notes_cubit.dart';
 
-enum HomeStatus {
+enum AllNotesStatus {
   initial, // Başlangıç durumu
   loading, // Notlar yükleniyor
   success, // Notlar başarıyla yüklendi
   failure, // Notlar yüklenirken hata oluştu
 }
 
-final class HomeState extends Equatable {
-  const HomeState({
-    this.status = HomeStatus.initial,
+final class AllNotesState extends Equatable {
+  const AllNotesState({
+    this.status = AllNotesStatus.initial,
     this.notes = const [],
     this.errorMessage = '',
     this.searchTerm = '',
   });
 
   /// Durum
-  final HomeStatus status;
+  final AllNotesStatus status;
 
   /// Not listesi
   final List<NoteModel> notes;
@@ -27,13 +27,13 @@ final class HomeState extends Equatable {
   /// Arama terimi
   final String searchTerm;
 
-  HomeState copyWith({
-    HomeStatus? status,
+  AllNotesState copyWith({
+    AllNotesStatus? status,
     List<NoteModel>? notes,
     String? errorMessage,
     String? searchTerm,
   }) {
-    return HomeState(
+    return AllNotesState(
       status: status ?? this.status,
       notes: notes ?? this.notes,
       errorMessage: errorMessage ?? this.errorMessage,

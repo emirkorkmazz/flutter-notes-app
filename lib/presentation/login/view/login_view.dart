@@ -130,8 +130,10 @@ class _LoginViewState extends State<LoginView> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       hintText: 'ornek@email.com',
+      textInputAction: TextInputAction.next,
       enabledBorderColor: Colors.white,
       focusedBorderColor: Colors.white,
+
       hintStyle: const TextStyle(color: Colors.white),
       prefix: const Icon(Icons.email_outlined, color: Colors.white),
       onChanged: (value) {

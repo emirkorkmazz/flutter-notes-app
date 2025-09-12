@@ -80,7 +80,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       (verifyResponse) async {
         // Login başarılı, kullanıcı bilgilerini storage'a kaydet
         await storageRepository.setIsLogged(isLogged: true);
-        await storageRepository.setUsername(username: verifyResponse.email);
+        await storageRepository.setUsername(
+          username: verifyResponse.data?.email,
+        );
 
         emit(state.copyWith(status: LoginStatus.authenticated));
       },

@@ -11,6 +11,9 @@ import '/presentation/presentation.dart';
 /// Uygulamanın Ana Navigator'unu yönetmesi için GlobalKey.
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Bottom Navigation Bar'ını yönetmesi için GlobalKey.
+final shellNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouter = GoRouter(
   /// Ana Navigator anahtarını bu parametreye veriyoruz.
   navigatorKey: rootNavigatorKey,
@@ -54,21 +57,42 @@ List<RouteBase> get _routes {
       builder: (context, state) => const RegisterView(),
     ),
 
-    /// Dashboard Ekranı için Rota
-    GoRoute(
-      path: AppRouteName.home.path,
-      name: AppRouteName.home.withoutSlash,
-      builder: (context, state) => const HomeView(),
+    /// Shell Route - Bottom Navigation Bar ile Ana Sayfalar
+    ShellRoute(
+      navigatorKey: shellNavigatorKey,
+      builder: (context, state, child) => ScaffoldWithBottomNav(child: child),
+      routes: [
+        /// Dashboard Ekranı için Rota
+        GoRoute(
+          path: AppRouteName.home.path,
+          name: AppRouteName.home.withoutSlash,
+          builder: (context, state) => const HomeView(),
+        ),
+
+        /// Tüm Notlar Ekranı için Rota
+        GoRoute(
+          path: AppRouteName.allNotes.path,
+          name: AppRouteName.allNotes.withoutSlash,
+          builder: (context, state) => const AllNotesView(),
+        ),
+
+        /// Ayarlar Ekranı için Rota
+        GoRoute(
+          path: AppRouteName.settings.path,
+          name: AppRouteName.settings.withoutSlash,
+          builder: (context, state) => const SettingsView(),
+        ),
+      ],
     ),
 
-    /// Not Ekle Ekranı için Rota
+    /// Not Ekle Ekranı için Rota (Bottom bar olmadan)
     GoRoute(
       path: AppRouteName.addNote.path,
       name: AppRouteName.addNote.withoutSlash,
       builder: (context, state) => const AddNoteView(),
     ),
 
-    /// Not Düzenle Ekranı için Rota
+    /// Not Düzenle Ekranı için Rota (Bottom bar olmadan)
     GoRoute(
       path: AppRouteName.editNote.path,
       name: AppRouteName.editNote.withoutSlash,
@@ -96,9 +120,6 @@ FutureOr<String?> _routeGuard(BuildContext context, GoRouterState state) async {
 
   /// Kullanıcının Giriş Yapıp Yapmadığını Kontrol Etme
   final isLoggedIn = (await storageRepository.getIsLogged()) ?? false;
-  log(
-    'Durumlar - isFirstTimeAppOpen: $isFirstTimeAppOpen, isLoggedIn: $isLoggedIn',
-  );
 
   /// Kullanıcının Bulunduğu Sayfanın Yolunu Alma
   final currentLocation = state.matchedLocation;

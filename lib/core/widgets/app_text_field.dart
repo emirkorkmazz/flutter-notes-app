@@ -122,19 +122,34 @@ class AppTextField extends StatelessWidget {
             maxLines: obscureText ? 1 : maxLines,
             autofillHints: autoFillHints,
 
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
             onFieldSubmitted: onSubmitted,
             decoration: InputDecoration(
-              hintStyle: hintStyle,
+              hintStyle:
+                  hintStyle ??
+                  const TextStyle(color: Colors.white70, fontSize: 16),
               filled: fillColorWhiteEnabled ? true : null,
               fillColor: fillColorWhiteEnabled ? Colors.white : null,
               contentPadding: const EdgeInsets.all(16),
               hintText: hintText,
               errorText: errorText,
-              prefixIcon: prefix,
-              suffixIcon: suffix,
+              prefixIcon:
+                  prefix != null
+                      ? IconTheme(
+                        data: const IconThemeData(color: Colors.white),
+                        child: prefix!,
+                      )
+                      : null,
+              suffixIcon:
+                  suffix != null
+                      ? IconTheme(
+                        data: const IconThemeData(color: Colors.white),
+                        child: suffix!,
+                      )
+                      : null,
               suffixIconConstraints: const BoxConstraints.tightFor(
                 width: 65,
                 height: 40,
