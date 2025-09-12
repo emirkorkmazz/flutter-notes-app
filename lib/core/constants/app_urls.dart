@@ -15,11 +15,11 @@ final class AppUrls {
   static const String createNote = '/api/v1/notes/create';
 
   ///
-  static const String updateNote = '/api/v1/notes/update';
+  static const String updateNote = '/api/v1/notes/update/{id}';
 
   ///
-  static const String deleteNote = '/api/v1/notes/delete';
+  static const String deleteNote = '/api/v1/notes/delete/{id}';
 
   ///
-  static const String getNoteById = '/api/v1/notes/get';
+  static const String getNoteById = '/api/v1/notes/get/{id}';
 }

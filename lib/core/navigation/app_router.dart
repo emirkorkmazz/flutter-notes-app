@@ -31,10 +31,7 @@ final appRouter = GoRouter(
 List<RouteBase> get _routes {
   return [
     // Root rotayı '/landing'e yönlendirin
-    GoRoute(
-      path: '/',
-      redirect: (context, state) => '/landing',
-    ),
+    GoRoute(path: '/', redirect: (context, state) => '/landing'),
 
     /// Landing Ekranı için Rota
     GoRoute(
@@ -63,13 +60,34 @@ List<RouteBase> get _routes {
       name: AppRouteName.home.withoutSlash,
       builder: (context, state) => const HomeView(),
     ),
+
+    /// Not Ekle Ekranı için Rota
+    GoRoute(
+      path: AppRouteName.addNote.path,
+      name: AppRouteName.addNote.withoutSlash,
+      builder: (context, state) => const AddNoteView(),
+    ),
+
+    /// Not Düzenle Ekranı için Rota
+    GoRoute(
+      path: AppRouteName.editNote.path,
+      name: AppRouteName.editNote.withoutSlash,
+      builder: (context, state) {
+        final noteId = state.pathParameters['noteId']!;
+        final title = state.uri.queryParameters['title'] ?? '';
+        final content = state.uri.queryParameters['content'] ?? '';
+
+        return EditNoteView(
+          noteId: noteId,
+          initialTitle: title,
+          initialContent: content,
+        );
+      },
+    ),
   ];
 }
 
-FutureOr<String?> _routeGuard(
-  BuildContext context,
-  GoRouterState state,
-) async {
+FutureOr<String?> _routeGuard(BuildContext context, GoRouterState state) async {
   final storageRepository = getIt<IStorageRepository>();
 
   /// Uygulamanın İlk Kez Açılıp Açılmadığını Kontrol Etme
@@ -78,7 +96,9 @@ FutureOr<String?> _routeGuard(
 
   /// Kullanıcının Giriş Yapıp Yapmadığını Kontrol Etme
   final isLoggedIn = (await storageRepository.getIsLogged()) ?? false;
-  log('Durumlar - isFirstTimeAppOpen: $isFirstTimeAppOpen, isLoggedIn: $isLoggedIn');
+  log(
+    'Durumlar - isFirstTimeAppOpen: $isFirstTimeAppOpen, isLoggedIn: $isLoggedIn',
+  );
 
   /// Kullanıcının Bulunduğu Sayfanın Yolunu Alma
   final currentLocation = state.matchedLocation;
@@ -106,7 +126,9 @@ FutureOr<String?> _routeGuard(
 
   /// [Durum 2]  Kullanıcı Giriş Yapmış ve Landing Sayfasındaysa
   if (isLoggedIn && currentLocation == AppRouteName.landing.path) {
-    log("Kullanıcı giriş yapmış, LandingView'dan DashboardView'e yönlendiriliyor.");
+    log(
+      "Kullanıcı giriş yapmış, LandingView'dan DashboardView'e yönlendiriliyor.",
+    );
     return AppRouteName.home.path;
   }
 

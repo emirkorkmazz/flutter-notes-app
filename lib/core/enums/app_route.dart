@@ -1,4 +1,3 @@
-
 enum AppRouteName {
   /// Top-Level Rotalar
   landing('/landing'),
@@ -6,7 +5,7 @@ enum AppRouteName {
   register('/register'),
   home('/home'),
   addNote('/addNote'),
-  editNote('/editNote');
+  editNote('/editNote/:noteId');
 
   const AppRouteName(this.path);
   final String path;
