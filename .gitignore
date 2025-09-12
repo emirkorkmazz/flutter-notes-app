@@ -45,3 +45,18 @@ app.*.map.json
 /android/app/release
 
 .env
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.config.dart
+*.gen.dart
+**/generated/
+**/gen/
+**/build/
+**/lib/core/gen/
+**/lib/data/models/request/*.g.dart
+**/lib/data/models/response/*.g.dart
+**/lib/data/clients/*.g.dart
+**/lib/core/env/env_conf.g.dart
+**/lib/core/di/injection.config.dart

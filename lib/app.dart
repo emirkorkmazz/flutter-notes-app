@@ -17,6 +17,9 @@ class App extends StatelessWidget {
         title: 'NoteApp',
         debugShowCheckedModeBanner: false,
 
+        // [Router]
+        routerConfig: appRouter,
+
         /// [Theme]
         theme: AppTheme.lightTheme,
       ),

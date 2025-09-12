@@ -60,3 +60,6 @@ flutter:
     - assets/images/
     - assets/icons/
 
+flutter_gen:
+  output: lib/core/gen
+
