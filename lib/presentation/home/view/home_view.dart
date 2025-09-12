@@ -24,127 +24,132 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notlarım'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<HomeBloc>().add(const RefreshNotes());
-            },
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: Assets.images.imBackgroundFirst.provider(),
+            fit: BoxFit.cover,
           ),
-        ],
-      ),
-      body: BlocConsumer<HomeBloc, HomeState>(
-        listener: (context, state) {
-          if (state.status == HomeStatus.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state.status == HomeStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+        ),
+        child: BlocConsumer<HomeBloc, HomeState>(
+          listener: (context, state) {
+            if (state.status == HomeStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state.status == HomeStatus.loading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state.status == HomeStatus.success) {
-            if (state.notes.isEmpty) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.note_add, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      'Henüz not yok',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'İlk notunuzu eklemek için + butonuna basın',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                  ],
+            if (state.status == HomeStatus.success) {
+              if (state.notes.isEmpty) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.note_add, size: 64, color: Colors.white),
+                      SizedBox(height: 16),
+                      Text(
+                        'Henüz not yok',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'İlk notunuzu eklemek için + butonuna basın',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () async {
+                  context.read<HomeBloc>().add(const RefreshNotes());
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: state.notes.length,
+                  itemBuilder: (context, index) {
+                    final note = state.notes[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        title: Text(
+                          note.title ?? 'Başlıksız Not',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 4),
+                            Text(
+                              note.content ?? '',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Oluşturulma: ${note.createdAt ?? 'Bilinmiyor'}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: PopupMenuButton(
+                          onSelected: (value) {
+                            if (value == 'edit' && note.id != null) {
+                              _navigateToEditNote(context, note);
+                            } else if (value == 'delete' && note.id != null) {
+                              _showDeleteDialog(context, note.id!);
+                            }
+                          },
+                          itemBuilder:
+                              (context) => [
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text('Düzenle'),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text('Sil'),
+                                ),
+                              ],
+                        ),
+                        onTap: () {
+                          // Not detay sayfasına git
+                          // context.go('/note/${note.id}');
+                        },
+                      ),
+                    );
+                  },
                 ),
               );
             }
 
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<HomeBloc>().add(const RefreshNotes());
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.notes.length,
-                itemBuilder: (context, index) {
-                  final note = state.notes[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      title: Text(
-                        note.title ?? 'Başlıksız Not',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Text(
-                            note.content ?? '',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Oluşturulma: ${note.createdAt ?? 'Bilinmiyor'}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: PopupMenuButton(
-                        onSelected: (value) {
-                          if (value == 'edit' && note.id != null) {
-                            _navigateToEditNote(context, note);
-                          } else if (value == 'delete' && note.id != null) {
-                            _showDeleteDialog(context, note.id!);
-                          }
-                        },
-                        itemBuilder:
-                            (context) => [
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Text('Düzenle'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Text('Sil'),
-                              ),
-                            ],
-                      ),
-                      onTap: () {
-                        // Not detay sayfasına git
-                        // context.go('/note/${note.id}');
-                      },
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-
-          return const Center(child: Text('Bir hata oluştu'));
-        },
+            return const Center(child: Text('Bir hata oluştu'));
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

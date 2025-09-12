@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 
 import '/core/core.dart';
 import '/data/data.dart';
+import 'domain.dart';
 
 abstract class IAuthRepository {
   /// Kullanıcı kayıt işlemi
@@ -26,10 +27,15 @@ abstract class IAuthRepository {
 
 @Injectable(as: IAuthRepository)
 class AuthRepository implements IAuthRepository {
-  const AuthRepository({required this.auth, required this.authClient});
+  const AuthRepository({
+    required this.auth,
+    required this.authClient,
+    required this.storageRepository,
+  });
 
   final FirebaseAuth auth;
   final AuthClient authClient;
+  final IStorageRepository storageRepository;
 
   @override
   Future<Result<VerifyTokenResponse>> registerUser({
@@ -93,13 +99,15 @@ class AuthRepository implements IAuthRepository {
         return Result.failure(const AuthFailure(message: 'Giriş yapılamadı'));
       }
 
-      // Firebase'den token al
+      // Firebase'den yeni token al
       final idToken = await credential.user!.getIdToken();
       if (idToken == null) {
         return Result.failure(const AuthFailure(message: 'Token alınamadı'));
       }
 
-      // Backend'e token doğrulama isteği gönder
+      // Yeni token'ı storage'a kaydet (AuthInterceptor'ın kullanması için)
+      await storageRepository.setIdToken(idToken);
+
       final verifyResponse = await authClient.verifyToken();
 
       return Result.success(verifyResponse);
