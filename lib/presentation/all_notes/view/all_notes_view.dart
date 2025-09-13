@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +17,7 @@ class AllNotesView extends StatefulWidget {
 
 class _AllNotesViewState extends State<AllNotesView> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _deleteTimer;
 
   @override
   void initState() {
@@ -26,6 +29,7 @@ class _AllNotesViewState extends State<AllNotesView> {
   @override
   void dispose() {
     _searchController.dispose();
+    _deleteTimer?.cancel();
     super.dispose();
   }
 
@@ -316,12 +320,52 @@ class _AllNotesViewState extends State<AllNotesView> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.read<AllNotesCubit>().deleteNote(noteId);
+                  _deleteNoteWithUndo(context, noteId);
                 },
                 child: const Text('Sil'),
               ),
             ],
           ),
     );
+  }
+
+  void _deleteNoteWithUndo(BuildContext context, String noteId) {
+    // Önce notu listeden kaldır (geçici olarak)
+    final allNotesCubit = context.read<AllNotesCubit>();
+    final currentState = allNotesCubit.state;
+    final noteToDelete = currentState.notes.firstWhere(
+      (note) => note.id == noteId,
+    );
+
+    // State'i güncelle (notu geçici olarak kaldır)
+    allNotesCubit.temporarilyRemoveNote(noteId);
+
+    // Snackbar göster
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Not başarılı bir şekilde silindi.'),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Geri Al',
+          onPressed: () {
+            // Timer'ı iptal et
+            _deleteTimer?.cancel();
+            // Notu geri ekle
+            allNotesCubit.restoreNote(noteToDelete);
+          },
+        ),
+      ),
+    );
+
+    // 5 saniye sonra gerçek silme işlemini yap
+    _deleteTimer = Timer(const Duration(seconds: 5), () {
+      // Context'in hala geçerli olup olmadığını kontrol et
+      if (mounted) {
+        final currentNotes = allNotesCubit.state.notes;
+        if (!currentNotes.any((note) => note.id == noteId)) {
+          allNotesCubit.deleteNote(noteId);
+        }
+      }
+    });
   }
 }

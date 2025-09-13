@@ -98,4 +98,17 @@ class AllNotesCubit extends Cubit<AllNotesState> {
   void searchChanged(String searchTerm) {
     emit(state.copyWith(searchTerm: searchTerm));
   }
+
+  /// Notu geçici olarak kaldır (undo için)
+  void temporarilyRemoveNote(String noteId) {
+    final updatedNotes =
+        state.notes.where((note) => note.id != noteId).toList();
+    emit(state.copyWith(notes: updatedNotes));
+  }
+
+  /// Notu geri ekle (undo için)
+  void restoreNote(NoteModel note) {
+    final updatedNotes = [...state.notes, note];
+    emit(state.copyWith(notes: updatedNotes));
+  }
 }

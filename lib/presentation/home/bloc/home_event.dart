@@ -35,3 +35,23 @@ final class SearchChanged extends HomeEvent {
   @override
   List<Object> get props => [searchTerm];
 }
+
+/// Notu geçici olarak kaldır event'i (undo için)
+final class TemporarilyRemoveNote extends HomeEvent {
+  const TemporarilyRemoveNote(this.noteId);
+
+  final String noteId;
+
+  @override
+  List<Object> get props => [noteId];
+}
+
+/// Notu geri ekle event'i (undo için)
+final class RestoreNote extends HomeEvent {
+  const RestoreNote(this.note);
+
+  final NoteModel note;
+
+  @override
+  List<Object> get props => [note];
+}

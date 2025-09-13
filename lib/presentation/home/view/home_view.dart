@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +17,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _deleteTimer;
 
   @override
   void initState() {
@@ -26,6 +29,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   void dispose() {
     _searchController.dispose();
+    _deleteTimer?.cancel();
     super.dispose();
   }
 
@@ -343,13 +347,15 @@ class _HomeViewState extends State<HomeView> {
 
   void _deleteNoteWithUndo(BuildContext context, String noteId) {
     // Önce notu listeden kaldır (geçici olarak)
-    final currentState = context.read<HomeBloc>().state;
-    final noteToDelete = currentState.notes.firstWhere((note) => note.id == noteId);
-    final updatedNotes = currentState.notes.where((note) => note.id != noteId).toList();
-    
+    final homeBloc = context.read<HomeBloc>();
+    final currentState = homeBloc.state;
+    final noteToDelete = currentState.notes.firstWhere(
+      (note) => note.id == noteId,
+    );
+
     // State'i güncelle (notu geçici olarak kaldır)
-    context.read<HomeBloc>().emit(currentState.copyWith(notes: updatedNotes));
-    
+    homeBloc.add(TemporarilyRemoveNote(noteId));
+
     // Snackbar göster
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -358,20 +364,23 @@ class _HomeViewState extends State<HomeView> {
         action: SnackBarAction(
           label: 'Geri Al',
           onPressed: () {
+            // Timer'ı iptal et
+            _deleteTimer?.cancel();
             // Notu geri ekle
-            final newNotes = [...updatedNotes, noteToDelete];
-            context.read<HomeBloc>().emit(currentState.copyWith(notes: newNotes));
+            homeBloc.add(RestoreNote(noteToDelete));
           },
         ),
       ),
     );
-    
+
     // 5 saniye sonra gerçek silme işlemini yap
-    Future.delayed(const Duration(seconds: 5), () {
-      // Eğer not hala listede yoksa (geri alınmamışsa) sil
-      final currentNotes = context.read<HomeBloc>().state.notes;
-      if (!currentNotes.any((note) => note.id == noteId)) {
-        context.read<HomeBloc>().add(DeleteNote(noteId));
+    _deleteTimer = Timer(const Duration(seconds: 5), () {
+      // Context'in hala geçerli olup olmadığını kontrol et
+      if (mounted) {
+        final currentNotes = homeBloc.state.notes;
+        if (!currentNotes.any((note) => note.id == noteId)) {
+          homeBloc.add(DeleteNote(noteId));
+        }
       }
     });
   }

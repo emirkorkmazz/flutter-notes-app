@@ -19,6 +19,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<RefreshNotes>(_onRefreshNotes);
     on<DeleteNote>(_onDeleteNote);
     on<SearchChanged>(_onSearchChanged);
+    on<TemporarilyRemoveNote>(_onTemporarilyRemoveNote);
+    on<RestoreNote>(_onRestoreNote);
 
     // Sync service'i başlat (connectivity değişikliklerini dinlemeye başlar)
     syncService.syncPendingOperations();
@@ -119,6 +121,25 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     emit(state.copyWith(searchTerm: event.searchTerm));
+  }
+
+  /// Notu geçici olarak kaldır (undo için)
+  FutureOr<void> _onTemporarilyRemoveNote(
+    TemporarilyRemoveNote event,
+    Emitter<HomeState> emit,
+  ) async {
+    final updatedNotes =
+        state.notes.where((note) => note.id != event.noteId).toList();
+    emit(state.copyWith(notes: updatedNotes));
+  }
+
+  /// Notu geri ekle (undo için)
+  FutureOr<void> _onRestoreNote(
+    RestoreNote event,
+    Emitter<HomeState> emit,
+  ) async {
+    final updatedNotes = [...state.notes, event.note];
+    emit(state.copyWith(notes: updatedNotes));
   }
 
   /// Notları tarih aralığına göre filtrele
