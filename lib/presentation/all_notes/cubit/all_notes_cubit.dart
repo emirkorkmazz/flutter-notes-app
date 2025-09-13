@@ -111,4 +111,36 @@ class AllNotesCubit extends Cubit<AllNotesState> {
     final updatedNotes = [...state.notes, note];
     emit(state.copyWith(notes: updatedNotes));
   }
+
+  /// AI önerisi al
+  Future<void> getAiSuggestion(String noteId) async {
+    emit(
+      state.copyWith(
+        aiSuggestionStatus: AiSuggestionStatus.loading,
+        aiSuggestionError: '',
+      ),
+    );
+
+    final result = await noteRepository.getAiSuggestions(noteId);
+
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            aiSuggestionStatus: AiSuggestionStatus.failure,
+            aiSuggestionError: failure.message,
+          ),
+        );
+      },
+      (GetAiSuggestionResponse response) {
+        emit(
+          state.copyWith(
+            aiSuggestionStatus: AiSuggestionStatus.success,
+            aiSuggestion: response.data,
+            aiSuggestionError: '',
+          ),
+        );
+      },
+    );
+  }
 }

@@ -21,6 +21,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<SearchChanged>(_onSearchChanged);
     on<TemporarilyRemoveNote>(_onTemporarilyRemoveNote);
     on<RestoreNote>(_onRestoreNote);
+    on<GetAiSuggestion>(_onGetAiSuggestion);
 
     // Sync service'i başlat (connectivity değişikliklerini dinlemeye başlar)
     syncService.syncPendingOperations();
@@ -140,6 +141,41 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) async {
     final updatedNotes = [...state.notes, event.note];
     emit(state.copyWith(notes: updatedNotes));
+  }
+
+  /// AI önerisi al
+  FutureOr<void> _onGetAiSuggestion(
+    GetAiSuggestion event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        aiSuggestionStatus: AiSuggestionStatus.loading,
+        aiSuggestionError: '',
+      ),
+    );
+
+    final result = await noteRepository.getAiSuggestions(event.noteId);
+
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            aiSuggestionStatus: AiSuggestionStatus.failure,
+            aiSuggestionError: failure.message,
+          ),
+        );
+      },
+      (GetAiSuggestionResponse response) {
+        emit(
+          state.copyWith(
+            aiSuggestionStatus: AiSuggestionStatus.success,
+            aiSuggestion: response.data,
+            aiSuggestionError: '',
+          ),
+        );
+      },
+    );
   }
 
   /// Notları tarih aralığına göre filtrele

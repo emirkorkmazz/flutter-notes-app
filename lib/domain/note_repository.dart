@@ -38,6 +38,9 @@ abstract class INoteRepository {
 
   /// Not geri yükle
   Future<Result<void>> restoreNote(String id);
+
+  /// AI önerilerini getir
+  Future<Result<GetAiSuggestionResponse>> getAiSuggestions(String id);
 }
 
 @Injectable(as: INoteRepository)
@@ -350,6 +353,25 @@ class NoteRepository implements INoteRepository {
       } else {
         return Result.failure(
           const AuthFailure(message: 'Not yüklenirken hata oluştu'),
+        );
+      }
+    } on Exception catch (e) {
+      return Result.failure(
+        AuthFailure(message: 'Beklenmeyen bir hata oluştu: $e'),
+      );
+    }
+  }
+
+  @override
+  Future<Result<GetAiSuggestionResponse>> getAiSuggestions(String id) async {
+    try {
+      final response = await noteClient.getAiSuggestions(id);
+
+      if (response.response.statusCode == 200) {
+        return Result.success(response.data);
+      } else {
+        return Result.failure(
+          const AuthFailure(message: 'AI önerileri yüklenirken hata oluştu'),
         );
       }
     } on Exception catch (e) {

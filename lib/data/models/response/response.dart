@@ -1,5 +1,6 @@
 export 'create_note_response.dart';
 export 'delete_note_response.dart';
+export 'get_ai_suggestion_response.dart';
 export 'get_note_by_id_response.dart';
 export 'get_notes_response.dart';
 export 'note_model.dart';

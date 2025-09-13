@@ -38,4 +38,10 @@ abstract class NoteClient {
   ///
   @PATCH(AppUrls.restoreNote)
   Future<HttpResponse<RestoreNoteResponse>> restoreNote(@Path('id') String id);
+
+  ///
+  @GET(AppUrls.getAiSuggestions)
+  Future<HttpResponse<GetAiSuggestionResponse>> getAiSuggestions(
+    @Path('id') String id,
+  );
 }

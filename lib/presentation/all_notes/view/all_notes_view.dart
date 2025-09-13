@@ -57,6 +57,22 @@ class _AllNotesViewState extends State<AllNotesView> {
                 ),
               );
             }
+
+            // AI önerisi başarılı olduğunda dialog göster
+            if (state.aiSuggestionStatus == AiSuggestionStatus.success &&
+                state.aiSuggestion != null) {
+              _showAiSuggestionDialog(context, state.aiSuggestion!);
+            }
+
+            // AI önerisi hatası
+            if (state.aiSuggestionStatus == AiSuggestionStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.aiSuggestionError),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
           },
           builder: (context, state) {
             return Column(
@@ -290,6 +306,12 @@ class _AllNotesViewState extends State<AllNotesView> {
           _showDeleteDialog(context, note.id!);
         }
       },
+      onAiSuggestion:
+          note.id != null
+              ? () {
+                _getAiSuggestion(context, note.id!);
+              }
+              : null,
       onTap: () {
         // Not detay sayfasına git
         // context.go('/note/${note.id}');
@@ -367,5 +389,22 @@ class _AllNotesViewState extends State<AllNotesView> {
         }
       }
     });
+  }
+
+  /// AI önerisi al
+  void _getAiSuggestion(BuildContext context, String noteId) {
+    context.read<AllNotesCubit>().getAiSuggestion(noteId);
+  }
+
+  /// AI önerisi dialog'unu göster
+  void _showAiSuggestionDialog(
+    BuildContext context,
+    GetAiSuggestionData aiSuggestion,
+  ) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AiSuggestionDialog(aiSuggestion: aiSuggestion),
+    );
   }
 }

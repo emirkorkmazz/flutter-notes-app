@@ -55,3 +55,13 @@ final class RestoreNote extends HomeEvent {
   @override
   List<Object> get props => [note];
 }
+
+/// AI önerisi al event'i
+final class GetAiSuggestion extends HomeEvent {
+  const GetAiSuggestion(this.noteId);
+
+  final String noteId;
+
+  @override
+  List<Object> get props => [noteId];
+}

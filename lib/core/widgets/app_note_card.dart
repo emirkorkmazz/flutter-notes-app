@@ -13,6 +13,7 @@ class AppNoteCard extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     this.onTap,
+    this.onAiSuggestion,
     super.key,
   });
 
@@ -27,6 +28,9 @@ class AppNoteCard extends StatelessWidget {
 
   /// Karta basıldığında çağrılan callback
   final VoidCallback? onTap;
+
+  /// AI önerisi butonuna basıldığında çağrılan callback
+  final VoidCallback? onAiSuggestion;
 
   @override
   Widget build(BuildContext context) {
@@ -222,6 +226,8 @@ class AppNoteCard extends StatelessWidget {
           onEdit();
         } else if (value == 'delete') {
           onDelete();
+        } else if (value == 'ai_suggestion' && onAiSuggestion != null) {
+          onAiSuggestion!();
         }
       },
       itemBuilder:
@@ -236,6 +242,24 @@ class AppNoteCard extends StatelessWidget {
                 ],
               ),
             ),
+            if (onAiSuggestion != null)
+              const PopupMenuItem(
+                value: 'ai_suggestion',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.auto_awesome,
+                      size: 18,
+                      color: Color(0xFF8B5CF6),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'AI Önerisi',
+                      style: TextStyle(color: Color(0xFF8B5CF6)),
+                    ),
+                  ],
+                ),
+              ),
             const PopupMenuItem(
               value: 'delete',
               child: Row(

@@ -25,4 +25,7 @@ final class AppUrls {
 
   ///
   static const String restoreNote = '/api/v1/notes/{id}/restore';
+
+  ///
+  static const String getAiSuggestions = '/api/v1/notes/{id}/ai';
 }
