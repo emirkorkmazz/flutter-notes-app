@@ -25,12 +25,16 @@ class NoteModel with EquatableMixin {
   String? id;
   String? title;
   String? content;
+  @JsonKey(name: 'start_date')
   String? startDate;
+  @JsonKey(name: 'end_date')
   String? endDate;
   bool? pinned;
   bool? deleted;
   List<NoteTag>? tags;
+  @JsonKey(name: 'created_at')
   String? createdAt;
+  @JsonKey(name: 'updated_at')
   String? updatedAt;
 
   Map<String, dynamic> toJson() => _$NoteModelToJson(this);

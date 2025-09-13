@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
@@ -101,6 +102,12 @@ class AddNoteCubit extends Cubit<AddNoteState> {
     if (!state.isValid) return;
 
     emit(state.copyWith(status: AddNoteStatus.loading));
+
+    // Debug için tarih değerlerini yazdır
+    debugPrint('Start Date: "${state.startDate}"');
+    debugPrint('End Date: "${state.endDate}"');
+    debugPrint('Start Date isEmpty: ${state.startDate?.isEmpty}');
+    debugPrint('End Date isEmpty: ${state.endDate?.isEmpty}');
 
     final result = await noteRepository.createNote(
       title: state.title.trim(),

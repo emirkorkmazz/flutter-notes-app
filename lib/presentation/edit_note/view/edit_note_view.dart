@@ -76,7 +76,7 @@ class _EditNoteViewState extends State<EditNoteView> {
         title: const Text('Notu Düzenle'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => context.go(AppRouteName.home.path),
+          onPressed: () => context.pop(),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -120,6 +120,8 @@ class _EditNoteViewState extends State<EditNoteView> {
                   backgroundColor: Colors.green,
                 ),
               );
+              // Form'u resetle
+              _resetForm(context);
               // Home sayfasına geri dön
               context.go(AppRouteName.home.path);
             } else if (state.status == EditNoteStatus.failure) {
@@ -392,6 +394,9 @@ class _EditNoteViewState extends State<EditNoteView> {
       final formattedDate =
           '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
       context.read<EditNoteCubit>().startDateChanged(formattedDate);
+    } else {
+      // Tarih seçilmediğinde null gönder
+      context.read<EditNoteCubit>().startDateChanged(null);
     }
   }
 
@@ -408,6 +413,9 @@ class _EditNoteViewState extends State<EditNoteView> {
       final formattedDate =
           '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
       context.read<EditNoteCubit>().endDateChanged(formattedDate);
+    } else {
+      // Tarih seçilmediğinde null gönder
+      context.read<EditNoteCubit>().endDateChanged(null);
     }
   }
 

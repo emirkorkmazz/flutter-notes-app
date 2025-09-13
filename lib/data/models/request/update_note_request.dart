@@ -20,7 +20,9 @@ class UpdateNoteRequest with EquatableMixin {
       _$UpdateNoteRequestFromJson(json);
   String? title;
   String? content;
+  @JsonKey(name: 'start_date')
   String? startDate;
+  @JsonKey(name: 'end_date')
   String? endDate;
   bool? pinned;
   List<NoteTag>? tags;

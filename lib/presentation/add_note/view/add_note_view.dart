@@ -20,6 +20,13 @@ class _AddNoteViewState extends State<AddNoteView> {
   final _endDateController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Sayfa açıldığında form'u temizle
+    _resetForm();
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
@@ -63,6 +70,8 @@ class _AddNoteViewState extends State<AddNoteView> {
                   backgroundColor: Colors.green,
                 ),
               );
+              // Form'u resetle
+              _resetForm();
               // Home sayfasına geri dön
               context.go(AppRouteName.home.path);
             } else if (state.status == AddNoteStatus.failure) {
@@ -315,8 +324,14 @@ class _AddNoteViewState extends State<AddNoteView> {
     if (picked != null) {
       final formattedDate =
           '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      debugPrint('Start Date Selected: "$formattedDate"');
       _startDateController.text = formattedDate;
       context.read<AddNoteCubit>().startDateChanged(formattedDate);
+    } else {
+      // Tarih seçilmediğinde null gönder
+      debugPrint('Start Date Not Selected');
+      _startDateController.clear();
+      context.read<AddNoteCubit>().startDateChanged(null);
     }
   }
 
@@ -332,8 +347,14 @@ class _AddNoteViewState extends State<AddNoteView> {
     if (picked != null) {
       final formattedDate =
           '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      print('End Date Selected: "$formattedDate"');
       _endDateController.text = formattedDate;
       context.read<AddNoteCubit>().endDateChanged(formattedDate);
+    } else {
+      // Tarih seçilmediğinde null gönder
+      print('End Date Not Selected');
+      _endDateController.clear();
+      context.read<AddNoteCubit>().endDateChanged(null);
     }
   }
 
@@ -447,5 +468,14 @@ class _AddNoteViewState extends State<AddNoteView> {
         ),
       ),
     );
+  }
+
+  /// Form'u sıfırla
+  void _resetForm() {
+    _titleController.clear();
+    _contentController.clear();
+    _startDateController.clear();
+    _endDateController.clear();
+    context.read<AddNoteCubit>().reset();
   }
 }

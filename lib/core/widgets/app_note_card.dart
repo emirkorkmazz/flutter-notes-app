@@ -145,7 +145,7 @@ class AppNoteCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                _formatDate(note.createdAt),
+                                _formatNoteDate(note.startDate, note.endDate),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
@@ -304,28 +304,77 @@ class AppNoteCard extends StatelessWidget {
     }
   }
 
-  /// Tarihi formatla
-  String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) {
+  /// Not tarihlerini formatla
+  String _formatNoteDate(String? startDate, String? endDate) {
+    if (startDate == null || startDate.isEmpty) {
       return 'Tarih belirtilmemiş';
     }
 
     try {
-      final date = DateTime.parse(dateString);
-      final now = DateTime.now();
-      final difference = now.difference(date);
+      final start = DateTime.parse(startDate);
+      final startFormatted = _formatDate(start);
 
-      if (difference.inDays == 0) {
-        return 'Bugün';
-      } else if (difference.inDays == 1) {
-        return 'Dün';
-      } else if (difference.inDays < 7) {
-        return '${difference.inDays} gün önce';
-      } else {
-        return '${date.day}/${date.month}/${date.year}';
+      if (endDate != null && endDate.isNotEmpty) {
+        final end = DateTime.parse(endDate);
+        final endFormatted = _formatDate(end);
+
+        // Eğer başlangıç ve bitiş tarihi aynıysa tek tarih göster
+        if (startFormatted == endFormatted) {
+          return startFormatted;
+        }
+
+        return '$startFormatted - $endFormatted';
       }
+
+      return startFormatted;
     } on FormatException {
-      return dateString;
+      return 'Tarih belirtilmemiş';
     }
+  }
+
+  /// Tarihi Türkçe formatta göster
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final tomorrow = today.add(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    // Bugün, dün, yarın kontrolü
+    if (dateOnly.isAtSameMomentAs(today)) {
+      return 'Bugün';
+    } else if (dateOnly.isAtSameMomentAs(yesterday)) {
+      return 'Dün';
+    } else if (dateOnly.isAtSameMomentAs(tomorrow)) {
+      return 'Yarın';
+    }
+
+    // Ay isimleri
+    const monthNames = [
+      '',
+      'Ocak',
+      'Şubat',
+      'Mart',
+      'Nisan',
+      'Mayıs',
+      'Haziran',
+      'Temmuz',
+      'Ağustos',
+      'Eylül',
+      'Ekim',
+      'Kasım',
+      'Aralık',
+    ];
+
+    final day = date.day;
+    final month = monthNames[date.month];
+    final year = date.year;
+
+    // Bu yıl ise yılı gösterme
+    if (year == now.year) {
+      return '$day $month';
+    }
+
+    return '$day $month $year';
   }
 }

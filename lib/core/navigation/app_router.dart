@@ -100,11 +100,55 @@ List<RouteBase> get _routes {
         final noteId = state.pathParameters['noteId']!;
         final title = state.uri.queryParameters['title'] ?? '';
         final content = state.uri.queryParameters['content'] ?? '';
+        final startDateRaw = state.uri.queryParameters['startDate'];
+        final endDateRaw = state.uri.queryParameters['endDate'];
+        final pinned = state.uri.queryParameters['pinned'] == 'true';
+        final tagsString = state.uri.queryParameters['tags'] ?? '';
+        final tags =
+            tagsString.isEmpty
+                ? <NoteTag>[]
+                : tagsString
+                    .split(',')
+                    .map(
+                      (tagName) => NoteTag.values.firstWhere(
+                        (tag) => tag.name == tagName,
+                        orElse: () => NoteTag.work,
+                      ),
+                    )
+                    .toList();
+
+        // Tarih formatını dönüştür (ISO format'tan DD/MM/YYYY formatına)
+        String? startDate;
+        String? endDate;
+
+        if (startDateRaw != null && startDateRaw.isNotEmpty) {
+          try {
+            final date = DateTime.parse(startDateRaw);
+            startDate =
+                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+          } catch (e) {
+            startDate = startDateRaw; // Parse edilemezse orijinal değeri kullan
+          }
+        }
+
+        if (endDateRaw != null && endDateRaw.isNotEmpty) {
+          try {
+            final date = DateTime.parse(endDateRaw);
+            endDate =
+                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+          } catch (e) {
+            endDate = endDateRaw; // Parse edilemezse orijinal değeri kullan
+          }
+        }
 
         return EditNoteView(
           noteId: noteId,
           initialTitle: title,
           initialContent: content,
+          initialStartDate: startDate,
+          initialEndDate: endDate,
+          initialPinned: pinned,
+          initialTags: tags,
         );
       },
     ),

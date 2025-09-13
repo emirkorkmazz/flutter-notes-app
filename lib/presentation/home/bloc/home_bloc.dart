@@ -113,7 +113,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   /// Notları tarih aralığına göre filtrele
-  /// Sadece bugün ve gelecek tarihli notları döndür
+  /// Bugün ve gelecekte aktif olan notları döndür
   List<NoteModel> _filterNotesByDate(List<NoteModel> notes) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -126,14 +126,29 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       try {
         final startDate = DateTime.parse(note.startDate!);
-        final noteDate = DateTime(
+        final startDateOnly = DateTime(
           startDate.year,
           startDate.month,
           startDate.day,
         );
 
-        // Bugün ve gelecek tarihli notları göster
-        return noteDate.isAtSameMomentAs(today) || noteDate.isAfter(today);
+        // Eğer endDate varsa, tarih aralığına göre kontrol et
+        if (note.endDate != null && note.endDate!.isNotEmpty) {
+          final endDate = DateTime.parse(note.endDate!);
+          final endDateOnly = DateTime(
+            endDate.year,
+            endDate.month,
+            endDate.day,
+          );
+
+          // Not bugün veya gelecekte devam ediyorsa göster
+          return endDateOnly.isAtSameMomentAs(today) ||
+              endDateOnly.isAfter(today);
+        }
+
+        // Sadece startDate varsa, bugün ve gelecek tarihli notları göster
+        return startDateOnly.isAtSameMomentAs(today) ||
+            startDateOnly.isAfter(today);
       } catch (e) {
         // Tarih parse edilemezse, notu göster
         return true;

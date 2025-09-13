@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '/core/core.dart';
 import '/data/data.dart';
-import '/presentation/edit_note/edit_note.dart';
 import '../bloc/bloc.dart';
 
 class HomeView extends StatefulWidget {
@@ -312,20 +311,9 @@ class _HomeViewState extends State<HomeView> {
 
   /// Edit Note sayfasına yönlendir
   void _navigateToEditNote(BuildContext context, NoteModel note) {
-    // EditNoteView'ı direkt NoteModel ile çağır
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder:
-            (context) => EditNoteView(
-              noteId: note.id ?? '',
-              initialTitle: note.title ?? '',
-              initialContent: note.content ?? '',
-              initialStartDate: note.startDate,
-              initialEndDate: note.endDate,
-              initialPinned: note.pinned ?? false,
-              initialTags: note.tags ?? [],
-            ),
-      ),
+    // GoRouter ile EditNoteView'a git
+    context.push(
+      '/editNote/${note.id}?title=${Uri.encodeComponent(note.title ?? '')}&content=${Uri.encodeComponent(note.content ?? '')}&startDate=${Uri.encodeComponent(note.startDate ?? '')}&endDate=${Uri.encodeComponent(note.endDate ?? '')}&pinned=${note.pinned ?? false}&tags=${note.tags?.map((tag) => tag.name).join(',') ?? ''}',
     );
   }
 
