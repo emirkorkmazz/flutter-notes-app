@@ -14,7 +14,7 @@ final class HomeState extends Equatable {
     this.errorMessage = '',
     this.searchTerm = '',
     this.aiSuggestionStatus = AiSuggestionStatus.initial,
-    this.aiSuggestion = null,
+    this.aiSuggestion,
     this.aiSuggestionError = '',
   });
 

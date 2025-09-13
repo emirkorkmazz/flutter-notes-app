@@ -89,25 +89,55 @@ class _SettingsViewContent extends StatelessWidget {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.15),
+                Colors.white.withValues(alpha: 0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
           child: Row(
             children: [
               // Profil fotoğrafı
               Container(
-                width: 60,
-                height: 60,
+                width: 70,
+                height: 70,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(30),
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade400, Colors.purple.shade400],
+                  ),
+                  borderRadius: BorderRadius.circular(35),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.person, size: 30, color: Colors.white),
+                child: const Icon(
+                  Icons.person_rounded,
+                  size: 35,
+                  color: Colors.white,
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
               // Kullanıcı bilgileri
               Expanded(
                 child: Column(
@@ -116,26 +146,41 @@ class _SettingsViewContent extends StatelessWidget {
                     Text(
                       state.userInfo?.data?.email ?? 'Kullanıcı',
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      state.userInfo?.data?.id ?? 'ID: -',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
+                    const SizedBox(height: 8),
                     if (state.userInfo?.data?.createdAt != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        'Üyelik: ${_formatDate(state.userInfo?.data?.createdAt ?? '')}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.calendar_today_rounded,
+                              size: 14,
+                              color: Colors.white.withValues(alpha: 0.8),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Üyelik: ${_formatDate(state.userInfo?.data?.createdAt ?? '')}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -153,45 +198,53 @@ class _SettingsViewContent extends StatelessWidget {
   Widget _buildSettingsList(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withValues(alpha: 0.15),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: ListView(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         children: [
           _buildSettingsItem(
-            icon: Icons.language,
-            title: 'Dil',
-            subtitle: 'Uygulama dilini değiştir',
-            onTap: () {
-              // Dil ayarları
-            },
-          ),
-          _buildDivider(),
-          _buildSettingsItem(
-            icon: Icons.help,
+            icon: Icons.help_center_rounded,
             title: 'Yardım',
-            subtitle: 'Sık sorulan sorular',
+            subtitle: 'Sık sorulan sorular ve destek',
             onTap: () {
-              // Yardım sayfası
+              context.push(AppRouteName.help.path);
             },
           ),
           _buildDivider(),
           _buildSettingsItem(
-            icon: Icons.info,
+            icon: Icons.info_rounded,
             title: 'Hakkında',
-            subtitle: 'Uygulama bilgileri',
+            subtitle: 'Uygulama bilgileri ve sürüm',
             onTap: () {
-              // Hakkında sayfası
+              context.push(AppRouteName.about.path);
             },
           ),
           _buildDivider(),
           _buildSettingsItem(
-            icon: Icons.logout,
+            icon: Icons.logout_rounded,
             title: 'Çıkış Yap',
-            subtitle: 'Hesabınızdan çıkış yapın',
+            subtitle: 'Hesabınızdan güvenli çıkış',
             onTap: () => _showLogoutDialog(context),
             isDestructive: true,
           ),
@@ -208,28 +261,59 @@ class _SettingsViewContent extends StatelessWidget {
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
-    return ListTile(
-      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.white),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDestructive ? Colors.red : Colors.white,
-          fontWeight: FontWeight.w500,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color:
+                isDestructive
+                    ? Colors.red.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            icon,
+            color: isDestructive ? Colors.red.shade400 : Colors.white,
+            size: 20,
+          ),
         ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.7),
-          fontSize: 12,
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isDestructive ? Colors.red.shade400 : Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
         ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 13,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 14,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
+        ),
+        onTap: onTap,
       ),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: Colors.white.withValues(alpha: 0.5),
-      ),
-      onTap: onTap,
     );
   }
 

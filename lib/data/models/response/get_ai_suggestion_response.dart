@@ -52,11 +52,21 @@ class GetAiSuggestionData with EquatableMixin {
 
   factory GetAiSuggestionData.fromJson(Map<String, dynamic> json) =>
       _$GetAiSuggestionDataFromJson(json);
+
+  @JsonKey(name: 'note_type')
   String? noteType;
+
+  @JsonKey(name: 'importance_level')
   String? importanceLevel;
+
   String? category;
+
   List<String>? suggestions;
+
+  @JsonKey(name: 'suggested_tags')
   List<String>? suggestedTags;
+
+  @JsonKey(name: 'raw_analysis')
   String? rawAnalysis;
 
   Map<String, dynamic> toJson() => _$GetAiSuggestionDataToJson(this);

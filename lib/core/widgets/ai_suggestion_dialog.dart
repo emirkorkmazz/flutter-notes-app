@@ -321,7 +321,7 @@ class AiSuggestionDialog extends StatelessWidget {
                 ],
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

@@ -63,6 +63,8 @@ class _HomeViewState extends State<HomeView> {
               if (state.aiSuggestionStatus == AiSuggestionStatus.success &&
                   state.aiSuggestion != null) {
                 _showAiSuggestionDialog(context, state.aiSuggestion!);
+                // Dialog gösterildikten sonra state'i temizle
+                context.read<HomeBloc>().add(const ClearAiSuggestion());
               }
 
               // AI önerisi hatası

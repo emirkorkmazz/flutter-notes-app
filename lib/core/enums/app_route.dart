@@ -7,7 +7,9 @@ enum AppRouteName {
   allNotes('/all-notes'),
   settings('/settings'),
   addNote('/addNote'),
-  editNote('/editNote/:noteId');
+  editNote('/editNote/:noteId'),
+  about('/about'),
+  help('/help');
 
   const AppRouteName(this.path);
   final String path;

@@ -143,4 +143,14 @@ class AllNotesCubit extends Cubit<AllNotesState> {
       },
     );
   }
+
+  /// AI önerisi state'ini temizle
+  void clearAiSuggestion() {
+    emit(
+      state.copyWith(
+        aiSuggestionStatus: AiSuggestionStatus.initial,
+        aiSuggestionError: '',
+      ),
+    );
+  }
 }

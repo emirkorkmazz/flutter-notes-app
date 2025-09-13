@@ -35,50 +35,64 @@ class AppNoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       child: Slidable(
         key: ValueKey(note.id ?? ''),
         startActionPane: ActionPane(
-          motion: const ScrollMotion(),
+          motion: const BehindMotion(),
           children: [
             SlidableAction(
               onPressed: (context) => onDelete(),
-              backgroundColor: Colors.red,
+              backgroundColor: const Color(0xFFE53E3E),
               foregroundColor: Colors.white,
-              icon: Icons.delete,
+              icon: Icons.delete_rounded,
               label: 'Sil',
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
+                topLeft: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
               ),
+              spacing: 8,
             ),
           ],
         ),
         endActionPane: ActionPane(
-          motion: const ScrollMotion(),
+          motion: const BehindMotion(),
           children: [
             SlidableAction(
               onPressed: (context) => onEdit(),
-              backgroundColor: Colors.blue,
+              backgroundColor: const Color(0xFF3182CE),
               foregroundColor: Colors.white,
-              icon: Icons.edit,
+              icon: Icons.edit_rounded,
               label: 'Düzenle',
               borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(16),
-                bottomRight: Radius.circular(16),
+                topRight: Radius.circular(20),
+                bottomRight: Radius.circular(20),
               ),
+              spacing: 8,
             ),
           ],
         ),
-        child: DecoratedBox(
+        child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Colors.grey.shade50],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+                spreadRadius: 0,
               ),
             ],
           ),
@@ -86,128 +100,186 @@ class AppNoteCard extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Başlık ve menü
+                    // Header - Başlık ve menü
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Başlık
                         Expanded(
-                          child: Text(
-                            note.title?.isNotEmpty ?? false
-                                ? note.title!
-                                : 'Başlıksız Not',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF2D3748),
-                              height: 1.3,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                note.title?.isNotEmpty ?? false
+                                    ? note.title!
+                                    : 'Başlıksız Not',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A202C),
+                                  height: 1.2,
+                                  letterSpacing: -0.5,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 8),
+                              // Tarih ve pin durumu
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: Colors.blue.shade100,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.schedule_rounded,
+                                          size: 14,
+                                          color: Colors.blue.shade600,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _formatNoteDate(
+                                            note.startDate,
+                                            note.endDate,
+                                            note.createdAt,
+                                          ),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.blue.shade600,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (note.pinned ?? false) ...[
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.amber.shade400,
+                                            Colors.orange.shade400,
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.amber.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.push_pin_rounded,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          const Text(
+                                            'Sabitli',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 16),
                         // Menü butonu
                         _buildMenuButton(context),
                       ],
                     ),
 
-                    const SizedBox(height: 12),
-
                     // İçerik
                     if (note.content?.isNotEmpty ?? false) ...[
-                      Text(
-                        note.content!,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF4A5568),
-                          height: 1.5,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                       const SizedBox(height: 16),
-                    ],
-
-                    // Alt kısım - Tarih ve etiketler
-                    Row(
-                      children: [
-                        // Tarih
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                size: 16,
-                                color: Colors.grey.shade600,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _formatNoteDate(
-                                  note.startDate,
-                                  note.endDate,
-                                  note.createdAt,
-                                ),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.grey.shade200,
+                            width: 1,
                           ),
                         ),
-
-                        // Pin ikonu (eğer pinlenmişse)
-                        if (note.pinned ?? false) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.push_pin,
-                                  size: 14,
-                                  color: Colors.amber.shade700,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Sabitli',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.amber.shade700,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        child: Text(
+                          note.content!,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Color(0xFF4A5568),
+                            height: 1.5,
+                            letterSpacing: 0.2,
                           ),
-                        ],
-                      ],
-                    ),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
 
                     // Etiketler
                     if (note.tags != null && note.tags!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: note.tags!.map(_buildTagChip).toList(),
                       ),
                     ],
+
+                    // Footer - Alt çizgi
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 3,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue.shade400,
+                            Colors.purple.shade400,
+                            Colors.pink.shade400,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -232,72 +304,173 @@ class AppNoteCard extends StatelessWidget {
       },
       itemBuilder:
           (context) => [
-            const PopupMenuItem(
+            PopupMenuItem(
               value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, size: 18, color: Color(0xFF4A5568)),
-                  SizedBox(width: 8),
-                  Text('Düzenle'),
-                ],
-              ),
-            ),
-            if (onAiSuggestion != null)
-              const PopupMenuItem(
-                value: 'ai_suggestion',
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.auto_awesome,
-                      size: 18,
-                      color: Color(0xFF8B5CF6),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.edit_rounded,
+                        size: 16,
+                        color: Colors.blue.shade600,
+                      ),
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      'AI Önerisi',
-                      style: TextStyle(color: Color(0xFF8B5CF6)),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Düzenle',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF2D3748),
+                      ),
                     ),
                   ],
                 ),
               ),
-            const PopupMenuItem(
+            ),
+            if (onAiSuggestion != null)
+              PopupMenuItem(
+                value: 'ai_suggestion',
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.purple.shade400,
+                              Colors.pink.shade400,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.auto_awesome_rounded,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        'AI Önerisi',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF2D3748),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            PopupMenuItem(
               value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, size: 18, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Sil', style: TextStyle(color: Colors.red)),
-                ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.delete_rounded,
+                        size: 16,
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Sil',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF2D3748),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
       icon: Container(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade600),
+        child: Icon(
+          Icons.more_horiz_rounded,
+          size: 20,
+          color: Colors.grey.shade600,
+        ),
       ),
     );
   }
 
   /// Etiket chip'i oluştur
   Widget _buildTagChip(NoteTag tag) {
+    final tagColor = _getTagColor(tag);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: _getTagColor(tag).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _getTagColor(tag).withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        tag.displayName,
-        style: TextStyle(
-          fontSize: 11,
-          color: _getTagColor(tag),
-          fontWeight: FontWeight.w600,
+        gradient: LinearGradient(
+          colors: [
+            tagColor.withValues(alpha: 0.1),
+            tagColor.withValues(alpha: 0.05),
+          ],
         ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: tagColor.withValues(alpha: 0.3), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: tagColor.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: tagColor,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            tag.displayName,
+            style: TextStyle(
+              fontSize: 12,
+              color: tagColor,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -152,6 +152,20 @@ List<RouteBase> get _routes {
         );
       },
     ),
+
+    /// Yardım Ekranı için Rota (Bottom bar olmadan)
+    GoRoute(
+      path: AppRouteName.help.path,
+      name: AppRouteName.help.withoutSlash,
+      builder: (context, state) => const HelpView(),
+    ),
+
+    /// Hakkında Ekranı için Rota (Bottom bar olmadan)
+    GoRoute(
+      path: AppRouteName.about.path,
+      name: AppRouteName.about.withoutSlash,
+      builder: (context, state) => const AboutView(),
+    ),
   ];
 }
 

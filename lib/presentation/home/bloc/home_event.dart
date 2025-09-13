@@ -65,3 +65,8 @@ final class GetAiSuggestion extends HomeEvent {
   @override
   List<Object> get props => [noteId];
 }
+
+/// AI önerisi state'ini temizle event'i
+final class ClearAiSuggestion extends HomeEvent {
+  const ClearAiSuggestion();
+}

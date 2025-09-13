@@ -123,7 +123,7 @@ class _AddNoteViewState extends State<AddNoteView> {
                         title: 'Not İçeriği',
                         icon: Icons.description,
                         child: ConstrainedBox(
-                          constraints: BoxConstraints(minHeight: 200),
+                          constraints: const BoxConstraints(minHeight: 200),
                           child: AppTextField(
                             controller: _contentController,
                             hintText: 'Not içeriğinizi yazın...',
@@ -351,7 +351,7 @@ class _AddNoteViewState extends State<AddNoteView> {
                       const SizedBox(height: 32),
 
                       /// Kaydet Butonu
-                      Container(
+                      DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [

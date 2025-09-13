@@ -62,6 +62,8 @@ class _AllNotesViewState extends State<AllNotesView> {
             if (state.aiSuggestionStatus == AiSuggestionStatus.success &&
                 state.aiSuggestion != null) {
               _showAiSuggestionDialog(context, state.aiSuggestion!);
+              // Dialog gösterildikten sonra state'i temizle
+              context.read<AllNotesCubit>().clearAiSuggestion();
             }
 
             // AI önerisi hatası

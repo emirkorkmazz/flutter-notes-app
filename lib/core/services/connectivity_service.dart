@@ -61,7 +61,7 @@ class ConnectivityService {
   }
 
   /// Bağlantı durumunu güncelle
-  void _updateConnectionStatus(List<ConnectivityResult> result) async {
+  Future<void> _updateConnectionStatus(List<ConnectivityResult> result) async {
     final hasNetworkInterface = result.any(
       (result) =>
           result == ConnectivityResult.mobile ||

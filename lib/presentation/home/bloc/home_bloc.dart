@@ -22,6 +22,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<TemporarilyRemoveNote>(_onTemporarilyRemoveNote);
     on<RestoreNote>(_onRestoreNote);
     on<GetAiSuggestion>(_onGetAiSuggestion);
+    on<ClearAiSuggestion>(_onClearAiSuggestion);
 
     // Sync service'i başlat (connectivity değişikliklerini dinlemeye başlar)
     syncService.syncPendingOperations();
@@ -175,6 +176,19 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           ),
         );
       },
+    );
+  }
+
+  /// AI önerisi state'ini temizle
+  FutureOr<void> _onClearAiSuggestion(
+    ClearAiSuggestion event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        aiSuggestionStatus: AiSuggestionStatus.initial,
+        aiSuggestionError: '',
+      ),
     );
   }
 
