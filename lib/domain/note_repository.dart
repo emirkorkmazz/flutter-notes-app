@@ -60,9 +60,7 @@ class NoteRepository implements INoteRepository {
 
       // Eğer internet varsa server'dan al
       if (hasConnection) {
-        debugPrint(
-          '🌐 Internet bağlantısı var, server\'dan notlar alınıyor...',
-        );
+        debugPrint("🌐 Internet bağlantısı var, server'dan notlar alınıyor...");
         final response = await noteClient.getNotes();
 
         if (response.response.statusCode == 200) {
@@ -77,7 +75,7 @@ class NoteRepository implements INoteRepository {
         }
       } else {
         // İnternet yok, local'den al
-        debugPrint('📱 Internet bağlantısı yok, local\'den notlar alınıyor...');
+        debugPrint("📱 Internet bağlantısı yok, local'den notlar alınıyor...");
         return await _getNotesFromLocal();
       }
     } on Exception catch (e) {
@@ -95,7 +93,7 @@ class NoteRepository implements INoteRepository {
     return localResult.fold<Result<GetNotesResponse>>(
       Result<GetNotesResponse>.failure,
       (List<NoteModel> notes) {
-        debugPrint('💾 Local\'den ${notes.length} not alındı');
+        debugPrint("💾 Local'den ${notes.length} not alındı");
         return Result.success(
           GetNotesResponse(
             isSuccess: true,
@@ -270,7 +268,7 @@ class NoteRepository implements INoteRepository {
     } on Exception catch (e) {
       // Hata durumunda local'e pending olarak kaydet
       debugPrint(
-        'Server\'da not güncellenirken hata: $e, local\'e kaydediliyor...',
+        "Server'da not güncellenirken hata: $e, local'e kaydediliyor...",
       );
       await localNoteRepository.updateLocalNote(
         updatedNote,

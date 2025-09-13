@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
-import 'package:uuid/uuid.dart';
 
 import '/core/core.dart';
 import '/data/data.dart';
@@ -33,7 +32,6 @@ class SyncService {
   final ConnectivityService connectivityService;
   late final StreamSubscription<bool> _connectivitySubscription;
 
-  final Uuid _uuid = const Uuid();
   bool _isSyncing = false;
 
   /// Pending operasyonları sync et
