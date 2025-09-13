@@ -9,9 +9,11 @@ part 'edit_note_state.dart';
 
 @Injectable()
 class EditNoteCubit extends Cubit<EditNoteState> {
-  EditNoteCubit({required this.noteRepository}) : super(const EditNoteState());
+  EditNoteCubit({required this.noteRepository, required this.syncService})
+    : super(const EditNoteState());
 
   final INoteRepository noteRepository;
+  final SyncService syncService;
 
   /// Not bilgilerini initialize et
   void initializeNote({
@@ -231,6 +233,8 @@ class EditNoteCubit extends Cubit<EditNoteState> {
             hasChanges: false,
           ),
         );
+        // Not güncellendikten sonra sync tetikle
+        syncService.syncPendingOperations();
       },
     );
   }

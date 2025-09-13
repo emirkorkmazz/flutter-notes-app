@@ -347,12 +347,12 @@ class _AddNoteViewState extends State<AddNoteView> {
     if (picked != null) {
       final formattedDate =
           '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
-      print('End Date Selected: "$formattedDate"');
+      debugPrint('End Date Selected: "$formattedDate"');
       _endDateController.text = formattedDate;
       context.read<AddNoteCubit>().endDateChanged(formattedDate);
     } else {
       // Tarih seçilmediğinde null gönder
-      print('End Date Not Selected');
+      debugPrint('End Date Not Selected');
       _endDateController.clear();
       context.read<AddNoteCubit>().endDateChanged(null);
     }
@@ -463,7 +463,7 @@ class _AddNoteViewState extends State<AddNoteView> {
                 ],
               ),
             ),
-            Icon(Icons.arrow_drop_down, color: Colors.white70, size: 20),
+            const Icon(Icons.arrow_drop_down, color: Colors.white70, size: 20),
           ],
         ),
       ),

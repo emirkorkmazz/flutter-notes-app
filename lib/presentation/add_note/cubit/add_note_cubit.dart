@@ -10,9 +10,11 @@ part 'add_note_state.dart';
 
 @Injectable()
 class AddNoteCubit extends Cubit<AddNoteState> {
-  AddNoteCubit({required this.noteRepository}) : super(const AddNoteState());
+  AddNoteCubit({required this.noteRepository, required this.syncService})
+    : super(const AddNoteState());
 
   final INoteRepository noteRepository;
+  final SyncService syncService;
 
   /// Başlık değiştiğinde
   void titleChanged(String title) {
@@ -129,6 +131,8 @@ class AddNoteCubit extends Cubit<AddNoteState> {
       },
       (createNoteResponse) {
         emit(state.copyWith(status: AddNoteStatus.success));
+        // Not kaydedildikten sonra sync tetikle
+        syncService.syncPendingOperations();
       },
     );
   }

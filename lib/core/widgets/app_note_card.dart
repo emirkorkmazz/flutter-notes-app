@@ -145,7 +145,11 @@ class AppNoteCard extends StatelessWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                _formatNoteDate(note.startDate, note.endDate),
+                                _formatNoteDate(
+                                  note.startDate,
+                                  note.endDate,
+                                  note.createdAt,
+                                ),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
@@ -305,31 +309,46 @@ class AppNoteCard extends StatelessWidget {
   }
 
   /// Not tarihlerini formatla
-  String _formatNoteDate(String? startDate, String? endDate) {
-    if (startDate == null || startDate.isEmpty) {
-      return 'Tarih belirtilmemiş';
-    }
+  String _formatNoteDate(
+    String? startDate,
+    String? endDate,
+    String? createdAt,
+  ) {
+    // Eğer startDate varsa, not tarihini göster
+    if (startDate != null && startDate.isNotEmpty) {
+      try {
+        final start = DateTime.parse(startDate);
+        final startFormatted = _formatDate(start);
 
-    try {
-      final start = DateTime.parse(startDate);
-      final startFormatted = _formatDate(start);
+        if (endDate != null && endDate.isNotEmpty) {
+          final end = DateTime.parse(endDate);
+          final endFormatted = _formatDate(end);
 
-      if (endDate != null && endDate.isNotEmpty) {
-        final end = DateTime.parse(endDate);
-        final endFormatted = _formatDate(end);
+          // Eğer başlangıç ve bitiş tarihi aynıysa tek tarih göster
+          if (startFormatted == endFormatted) {
+            return startFormatted;
+          }
 
-        // Eğer başlangıç ve bitiş tarihi aynıysa tek tarih göster
-        if (startFormatted == endFormatted) {
-          return startFormatted;
+          return '$startFormatted - $endFormatted';
         }
 
-        return '$startFormatted - $endFormatted';
+        return startFormatted;
+      } on FormatException {
+        return 'Tarih belirtilmemiş';
       }
-
-      return startFormatted;
-    } on FormatException {
-      return 'Tarih belirtilmemiş';
     }
+
+    // startDate yoksa, oluşturulma tarihini göster (internet yokken eklenen notlar için)
+    if (createdAt != null && createdAt.isNotEmpty) {
+      try {
+        final created = DateTime.parse(createdAt);
+        return _formatDate(created);
+      } on FormatException {
+        return 'Tarih belirtilmemiş';
+      }
+    }
+
+    return 'Tarih belirtilmemiş';
   }
 
   /// Tarihi Türkçe formatta göster

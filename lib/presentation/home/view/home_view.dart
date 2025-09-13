@@ -332,12 +332,47 @@ class _HomeViewState extends State<HomeView> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.read<HomeBloc>().add(DeleteNote(noteId));
+                  _deleteNoteWithUndo(context, noteId);
                 },
                 child: const Text('Sil'),
               ),
             ],
           ),
     );
+  }
+
+  void _deleteNoteWithUndo(BuildContext context, String noteId) {
+    // Önce notu listeden kaldır (geçici olarak)
+    final currentState = context.read<HomeBloc>().state;
+    final noteToDelete = currentState.notes.firstWhere((note) => note.id == noteId);
+    final updatedNotes = currentState.notes.where((note) => note.id != noteId).toList();
+    
+    // State'i güncelle (notu geçici olarak kaldır)
+    context.read<HomeBloc>().emit(currentState.copyWith(notes: updatedNotes));
+    
+    // Snackbar göster
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Not başarılı bir şekilde silindi.'),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Geri Al',
+          onPressed: () {
+            // Notu geri ekle
+            final newNotes = [...updatedNotes, noteToDelete];
+            context.read<HomeBloc>().emit(currentState.copyWith(notes: newNotes));
+          },
+        ),
+      ),
+    );
+    
+    // 5 saniye sonra gerçek silme işlemini yap
+    Future.delayed(const Duration(seconds: 5), () {
+      // Eğer not hala listede yoksa (geri alınmamışsa) sil
+      final currentNotes = context.read<HomeBloc>().state.notes;
+      if (!currentNotes.any((note) => note.id == noteId)) {
+        context.read<HomeBloc>().add(DeleteNote(noteId));
+      }
+    });
   }
 }

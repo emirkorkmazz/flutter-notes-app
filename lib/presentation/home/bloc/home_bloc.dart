@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
+import '/core/core.dart';
 import '/data/data.dart';
 import '/domain/domain.dart';
 
@@ -12,14 +13,19 @@ part 'home_state.dart';
 
 @Injectable()
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc({required this.noteRepository}) : super(const HomeState()) {
+  HomeBloc({required this.noteRepository, required this.syncService})
+    : super(const HomeState()) {
     on<LoadNotes>(_onLoadNotes);
     on<RefreshNotes>(_onRefreshNotes);
     on<DeleteNote>(_onDeleteNote);
     on<SearchChanged>(_onSearchChanged);
+
+    // Sync service'i başlat (connectivity değişikliklerini dinlemeye başlar)
+    syncService.syncPendingOperations();
   }
 
   final INoteRepository noteRepository;
+  final SyncService syncService;
 
   /// Notları yükle
   FutureOr<void> _onLoadNotes(LoadNotes event, Emitter<HomeState> emit) async {
@@ -55,6 +61,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     RefreshNotes event,
     Emitter<HomeState> emit,
   ) async {
+    // Önce manuel sync tetikle
+    await syncService.forcSync();
+
     // Refresh için loading state'ini göstermiyoruz
     final result = await noteRepository.getNotes();
 

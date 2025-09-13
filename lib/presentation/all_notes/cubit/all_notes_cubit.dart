@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
+import '/core/core.dart';
 import '/data/data.dart';
 import '/domain/domain.dart';
 
@@ -11,9 +12,11 @@ part 'all_notes_state.dart';
 
 @Injectable()
 class AllNotesCubit extends Cubit<AllNotesState> {
-  AllNotesCubit({required this.noteRepository}) : super(const AllNotesState());
+  AllNotesCubit({required this.noteRepository, required this.syncService})
+    : super(const AllNotesState());
 
   final INoteRepository noteRepository;
+  final SyncService syncService;
 
   /// Tüm notları yükle
   Future<void> loadAllNotes() async {
@@ -44,6 +47,9 @@ class AllNotesCubit extends Cubit<AllNotesState> {
 
   /// Tüm notları yenile (pull to refresh)
   Future<void> refreshAllNotes() async {
+    // Önce manuel sync tetikle
+    await syncService.forcSync();
+
     // Refresh için loading state'ini göstermiyoruz
     final result = await noteRepository.getNotes();
 
