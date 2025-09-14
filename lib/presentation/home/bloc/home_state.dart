@@ -13,6 +13,7 @@ final class HomeState extends Equatable {
     this.notes = const [],
     this.errorMessage = '',
     this.searchTerm = '',
+    this.selectedTags = const [],
     this.aiSuggestionStatus = AiSuggestionStatus.initial,
     this.aiSuggestion,
     this.aiSuggestionError = '',
@@ -30,6 +31,9 @@ final class HomeState extends Equatable {
   /// Arama terimi
   final String searchTerm;
 
+  /// Seçili tag'ler
+  final List<NoteTag> selectedTags;
+
   /// AI önerisi durumu
   final AiSuggestionStatus aiSuggestionStatus;
 
@@ -44,6 +48,7 @@ final class HomeState extends Equatable {
     List<NoteModel>? notes,
     String? errorMessage,
     String? searchTerm,
+    List<NoteTag>? selectedTags,
     AiSuggestionStatus? aiSuggestionStatus,
     GetAiSuggestionData? aiSuggestion,
     String? aiSuggestionError,
@@ -53,6 +58,7 @@ final class HomeState extends Equatable {
       notes: notes ?? this.notes,
       errorMessage: errorMessage ?? this.errorMessage,
       searchTerm: searchTerm ?? this.searchTerm,
+      selectedTags: selectedTags ?? this.selectedTags,
       aiSuggestionStatus: aiSuggestionStatus ?? this.aiSuggestionStatus,
       aiSuggestion: aiSuggestion ?? this.aiSuggestion,
       aiSuggestionError: aiSuggestionError ?? this.aiSuggestionError,
@@ -65,6 +71,7 @@ final class HomeState extends Equatable {
     notes,
     errorMessage,
     searchTerm,
+    selectedTags,
     aiSuggestionStatus,
     aiSuggestion,
     aiSuggestionError,

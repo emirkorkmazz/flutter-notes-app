@@ -23,6 +23,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<RestoreNote>(_onRestoreNote);
     on<GetAiSuggestion>(_onGetAiSuggestion);
     on<ClearAiSuggestion>(_onClearAiSuggestion);
+    on<TagFilterChanged>(_onTagFilterChanged);
+    on<ClearTagFilter>(_onClearTagFilter);
 
     // Sync service'i başlat (connectivity değişikliklerini dinlemeye başlar)
     syncService.syncPendingOperations();
@@ -190,6 +192,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         aiSuggestionError: '',
       ),
     );
+  }
+
+  /// Tag filtresi değişti
+  FutureOr<void> _onTagFilterChanged(
+    TagFilterChanged event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(state.copyWith(selectedTags: event.selectedTags));
+  }
+
+  /// Tag filtresini temizle
+  FutureOr<void> _onClearTagFilter(
+    ClearTagFilter event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(state.copyWith(selectedTags: const []));
   }
 
   /// Notları tarih aralığına göre filtrele

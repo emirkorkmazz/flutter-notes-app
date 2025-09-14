@@ -83,6 +83,8 @@ class _HomeViewState extends State<HomeView> {
                   _buildHeader(),
                   _buildSearchBar(),
                   const SizedBox(height: 16),
+                  _buildTagFilter(state),
+                  const SizedBox(height: 16),
                   Expanded(child: _buildNotesContent(state)),
                 ],
               );
@@ -159,6 +161,86 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  /// Tag filtreleme bölümü
+  Widget _buildTagFilter(HomeState state) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Başlık ve temizle butonu
+          Row(
+            children: [
+              const Text(
+                'Etiketlere Göre Filtrele',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              if (state.selectedTags.isNotEmpty)
+                TextButton(
+                  onPressed: () {
+                    context.read<HomeBloc>().add(const ClearTagFilter());
+                  },
+                  child: const Text(
+                    'Temizle',
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Tag seçim alanı
+          SizedBox(
+            height: 50,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children:
+                  NoteTag.values.map((tag) {
+                    final isSelected = state.selectedTags.contains(tag);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(tag.displayName),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          final newSelectedTags = [...state.selectedTags];
+                          if (selected) {
+                            newSelectedTags.add(tag);
+                          } else {
+                            newSelectedTags.remove(tag);
+                          }
+                          context.read<HomeBloc>().add(
+                            TagFilterChanged(newSelectedTags),
+                          );
+                        },
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        selectedColor: _getTagColor(tag).withValues(alpha: 0.3),
+                        checkmarkColor: Colors.white,
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.black : Colors.green,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                        side: BorderSide(
+                          color:
+                              isSelected
+                                  ? _getTagColor(tag)
+                                  : Colors.white.withValues(alpha: 0.3),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Not içeriği - Pinlenmiş ve normal notlar
   Widget _buildNotesContent(HomeState state) {
     if (state.status == HomeStatus.loading) {
@@ -166,8 +248,12 @@ class _HomeViewState extends State<HomeView> {
     }
 
     if (state.status == HomeStatus.success) {
-      // Arama terimine göre notları filtrele
-      final filteredNotes = _filterNotes(state.notes, state.searchTerm);
+      // Arama terimine ve seçili tag'lere göre notları filtrele
+      final filteredNotes = _filterNotes(
+        state.notes,
+        state.searchTerm,
+        state.selectedTags,
+      );
       final pinnedNotes =
           filteredNotes.where((note) => note.pinned ?? false).toList();
       final regularNotes =
@@ -182,7 +268,9 @@ class _HomeViewState extends State<HomeView> {
             physics: const AlwaysScrollableScrollPhysics(),
             child: SizedBox(
               height: MediaQuery.of(context).size.height * 0.6,
-              child: _buildEmptyState(state.searchTerm.isNotEmpty),
+              child: _buildEmptyState(
+                state.searchTerm.isNotEmpty || state.selectedTags.isNotEmpty,
+              ),
             ),
           ),
         );
@@ -234,16 +322,16 @@ class _HomeViewState extends State<HomeView> {
   }
 
   /// Boş durum widget'ı
-  Widget _buildEmptyState(bool isSearching) {
-    if (isSearching) {
+  Widget _buildEmptyState(bool isFiltering) {
+    if (isFiltering) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 64, color: Colors.white),
+            Icon(Icons.filter_list_off, size: 64, color: Colors.white),
             SizedBox(height: 16),
             Text(
-              'Arama sonucu bulunamadı',
+              'Filtre sonucu bulunamadı',
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.white,
@@ -252,7 +340,7 @@ class _HomeViewState extends State<HomeView> {
             ),
             SizedBox(height: 8),
             Text(
-              'Farklı bir arama terimi deneyin',
+              'Farklı filtre seçenekleri deneyin',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.white,
@@ -292,17 +380,39 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  /// Notları filtrele
-  List<NoteModel> _filterNotes(List<NoteModel> notes, String searchTerm) {
-    if (searchTerm.isEmpty) return notes;
+  /// Notları filtrele (arama terimi ve tag'lere göre)
+  List<NoteModel> _filterNotes(
+    List<NoteModel> notes,
+    String searchTerm,
+    List<NoteTag> selectedTags,
+  ) {
+    var filteredNotes = notes;
 
-    final searchTermLower = searchTerm.toLowerCase();
-    return notes.where((note) {
-      final title = (note.title ?? '').toLowerCase();
-      final content = (note.content ?? '').toLowerCase();
-      return title.contains(searchTermLower) ||
-          content.contains(searchTermLower);
-    }).toList();
+    // Arama terimine göre filtrele
+    if (searchTerm.isNotEmpty) {
+      final searchTermLower = searchTerm.toLowerCase();
+      filteredNotes =
+          filteredNotes.where((note) {
+            final title = (note.title ?? '').toLowerCase();
+            final content = (note.content ?? '').toLowerCase();
+            return title.contains(searchTermLower) ||
+                content.contains(searchTermLower);
+          }).toList();
+    }
+
+    // Tag'lere göre filtrele
+    if (selectedTags.isNotEmpty) {
+      filteredNotes =
+          filteredNotes.where((note) {
+            if (note.tags == null || note.tags!.isEmpty) return false;
+            // Seçili tag'lerden en az birini içeren notları göster
+            return selectedTags.any(
+              (selectedTag) => note.tags!.contains(selectedTag),
+            );
+          }).toList();
+    }
+
+    return filteredNotes;
   }
 
   /// Not listesini oluştur
@@ -423,5 +533,35 @@ class _HomeViewState extends State<HomeView> {
       context: context,
       builder: (context) => AiSuggestionDialog(aiSuggestion: aiSuggestion),
     );
+  }
+
+  /// Etiket rengini belirle
+  Color _getTagColor(NoteTag tag) {
+    switch (tag) {
+      case NoteTag.work:
+        return const Color(0xFF3B82F6); // Mavi
+      case NoteTag.personal:
+        return const Color(0xFF10B981); // Yeşil
+      case NoteTag.important:
+        return const Color(0xFFEF4444); // Kırmızı
+      case NoteTag.ideas:
+        return const Color(0xFF8B5CF6); // Mor
+      case NoteTag.reminder:
+        return const Color(0xFFF59E0B); // Turuncu
+      case NoteTag.meeting:
+        return const Color(0xFF06B6D4); // Cyan
+      case NoteTag.study:
+        return const Color(0xFF8B5CF6); // Mor
+      case NoteTag.shopping:
+        return const Color(0xFFEC4899); // Pembe
+      case NoteTag.todo:
+        return const Color(0xFFF59E0B); // Turuncu
+      case NoteTag.finance:
+        return const Color(0xFF10B981); // Yeşil
+      case NoteTag.health:
+        return const Color(0xFFEF4444); // Kırmızı
+      case NoteTag.travel:
+        return const Color(0xFF06B6D4); // Cyan
+    }
   }
 }

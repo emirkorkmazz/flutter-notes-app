@@ -70,3 +70,18 @@ final class GetAiSuggestion extends HomeEvent {
 final class ClearAiSuggestion extends HomeEvent {
   const ClearAiSuggestion();
 }
+
+/// Tag filtresi değişti event'i
+final class TagFilterChanged extends HomeEvent {
+  const TagFilterChanged(this.selectedTags);
+
+  final List<NoteTag> selectedTags;
+
+  @override
+  List<Object> get props => [selectedTags];
+}
+
+/// Tag filtresini temizle event'i
+final class ClearTagFilter extends HomeEvent {
+  const ClearTagFilter();
+}
