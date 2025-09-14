@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 
@@ -47,14 +48,20 @@ class AllNotesCubit extends Cubit<AllNotesState> {
 
   /// Tüm notları yenile (pull to refresh)
   Future<void> refreshAllNotes() async {
+    debugPrint('🔄 AllNotes refresh başlatıldı');
+
     // Önce manuel sync tetikle
+    debugPrint('⚡ Sync service tetikleniyor...');
     await syncService.forcSync();
+    debugPrint('✅ Sync service tamamlandı');
 
     // Refresh için loading state'ini göstermiyoruz
+    debugPrint('📥 AllNotes getNotes çağırılıyor...');
     final result = await noteRepository.getNotes();
 
     result.fold(
       (failure) {
+        debugPrint('❌ AllNotes refresh hata: ${failure.message}');
         emit(
           state.copyWith(
             status: AllNotesStatus.failure,
@@ -63,6 +70,17 @@ class AllNotesCubit extends Cubit<AllNotesState> {
         );
       },
       (GetNotesResponse response) {
+        debugPrint(
+          '✅ AllNotes refresh response alındı: ${response.data?.length ?? 0} not',
+        );
+        if (response.data != null) {
+          for (var i = 0; i < response.data!.length; i++) {
+            final note = response.data![i];
+            debugPrint(
+              '📝 AllNotes refresh not ${i + 1}: ${note.title} (ID: ${note.id})',
+            );
+          }
+        }
         emit(
           state.copyWith(
             status: AllNotesStatus.success,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -84,11 +85,12 @@ class LocalDatabaseClient {
     final db = await database;
     final maps = await db.query(
       'notes',
-      where: 'sync_status IN (?, ?, ?)',
-      whereArgs: ['pending_create', 'pending_update', 'pending_delete'],
+      where: 'sync_status IN (?, ?, ?) AND deleted = ?',
+      whereArgs: ['pending_create', 'pending_update', 'pending_delete', 0],
       orderBy: 'last_modified ASC', // En eski pending'den başla
     );
 
+    debugPrint('📋 ${maps.length} pending not bulundu');
     return maps.map(LocalNoteModel.fromMap).toList();
   }
 
@@ -106,6 +108,40 @@ class LocalDatabaseClient {
       return LocalNoteModel.fromMap(maps.first);
     }
     return null;
+  }
+
+  /// Title ve content'e göre not getir (duplicate kontrolü için)
+  Future<LocalNoteModel?> getNoteByTitleAndContent(
+    String title,
+    String content,
+  ) async {
+    final db = await database;
+    final maps = await db.query(
+      'notes',
+      where: 'title = ? AND content = ? AND deleted = ?',
+      whereArgs: [title, content, 0],
+      orderBy: 'last_modified DESC', // En yeni kaydı al
+      limit: 1,
+    );
+
+    if (maps.isNotEmpty) {
+      return LocalNoteModel.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  /// Processing durumundaki notları getir
+  Future<List<LocalNoteModel>> getProcessingNotes() async {
+    final db = await database;
+    final maps = await db.query(
+      'notes',
+      where: 'sync_status = ? AND deleted = ?',
+      whereArgs: ['processing', 0],
+      orderBy: 'last_modified DESC',
+    );
+
+    debugPrint('⚙️ ${maps.length} processing not bulundu');
+    return maps.map(LocalNoteModel.fromMap).toList();
   }
 
   /// Not ekle
@@ -205,6 +241,60 @@ class LocalDatabaseClient {
   Future<int> clearAllNotes() async {
     final db = await database;
     return db.delete('notes');
+  }
+
+  /// Duplicate notları temizle (title ve content bazlı)
+  Future<void> cleanupDuplicateNotes() async {
+    final db = await database;
+
+    // Aynı title ve content'e sahip notları bul
+    final duplicates = await db.rawQuery('''
+      SELECT title, content, MIN(id) as keep_id, COUNT(*) as count
+      FROM notes 
+      WHERE deleted = 0 AND title IS NOT NULL AND content IS NOT NULL
+      GROUP BY title, content 
+      HAVING COUNT(*) > 1
+    ''');
+
+    for (final duplicate in duplicates) {
+      final title = duplicate['title']! as String;
+      final content = duplicate['content']! as String;
+      final keepId = duplicate['keep_id']! as int;
+      final count = duplicate['count']! as int;
+
+      // En eski kaydı tut, diğerlerini sil
+      await db.delete(
+        'notes',
+        where: 'title = ? AND content = ? AND id != ? AND deleted = ?',
+        whereArgs: [title, content, keepId, 0],
+      );
+
+      debugPrint('🧹 ${count - 1} duplicate title/content temizlendi: $title');
+    }
+
+    // Ayrıca aynı server_id'ye sahip notları da temizle
+    final serverIdDuplicates = await db.rawQuery('''
+      SELECT server_id, MIN(id) as keep_id, COUNT(*) as count
+      FROM notes 
+      WHERE server_id IS NOT NULL AND deleted = 0
+      GROUP BY server_id 
+      HAVING COUNT(*) > 1
+    ''');
+
+    for (final duplicate in serverIdDuplicates) {
+      final serverId = duplicate['server_id']! as String;
+      final keepId = duplicate['keep_id']! as int;
+      final count = duplicate['count']! as int;
+
+      // En eski kaydı tut, diğerlerini sil
+      await db.delete(
+        'notes',
+        where: 'server_id = ? AND id != ? AND deleted = ?',
+        whereArgs: [serverId, keepId, 0],
+      );
+
+      debugPrint('🧹 ${count - 1} duplicate server ID temizlendi: $serverId');
+    }
   }
 
   /// Database'i kapat

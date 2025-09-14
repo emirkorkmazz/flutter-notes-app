@@ -67,10 +67,10 @@ class NoteRepository implements INoteRepository {
         final response = await noteClient.getNotes();
 
         if (response.response.statusCode == 200) {
-          // Server'dan başarıyla alındı, local'e kaydet
-          if (response.data.data != null) {
-            await localNoteRepository.syncNotesFromServer(response.data.data!);
-          }
+          // Server'dan başarıyla alındı - İnternet varken sadece server'dan döndür
+          debugPrint(
+            "✅ Server'dan ${response.data.data?.length ?? 0} not alındı, local sync atlanıyor",
+          );
           return Result.success(response.data);
         } else {
           // Server hatası, local'den al
@@ -97,6 +97,11 @@ class NoteRepository implements INoteRepository {
       Result<GetNotesResponse>.failure,
       (List<NoteModel> notes) {
         debugPrint("💾 Local'den ${notes.length} not alındı");
+        // Local'den gelen notları logla
+        for (var i = 0; i < notes.length; i++) {
+          final note = notes[i];
+          debugPrint('💾 Local not ${i + 1}: ${note.title} (ID: ${note.id})');
+        }
         return Result.success(
           GetNotesResponse(
             isSuccess: true,

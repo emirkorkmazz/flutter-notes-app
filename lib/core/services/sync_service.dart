@@ -12,25 +12,19 @@ class SyncService {
   SyncService({
     required this.noteRepository,
     required this.localNoteRepository,
+    required this.localDatabaseClient,
     required this.connectivityService,
   }) {
-    // Bağlantı durumu değişikliklerini dinle
-    _connectivitySubscription = connectivityService.connectionStream.listen((
-      isConnected,
-    ) {
-      if (isConnected) {
-        debugPrint(
-          '📡 İnternet bağlantısı tespit edildi, sync başlatılıyor...',
-        );
-        syncPendingOperations();
-      }
-    });
+    // NOT: Connectivity listener KAPATILDI
+    // Çünkü manual refresh zaten sync yapıyor
+    // Çifte sync engellemek için sadece manual sync kullanıyoruz
+    debugPrint('🚫 Connectivity listener devre dışı - sadece manual sync');
   }
 
   final INoteRepository noteRepository;
   final ILocalNoteRepository localNoteRepository;
+  final LocalDatabaseClient localDatabaseClient;
   final ConnectivityService connectivityService;
-  late final StreamSubscription<bool> _connectivitySubscription;
 
   bool _isSyncing = false;
 
@@ -50,11 +44,20 @@ class SyncService {
     debugPrint('🔄 Sync işlemi başlatıldı...');
 
     try {
-      // Önce server'dan güncel notları al ve local'e sync et
-      await _syncFromServer();
+      // Önce takılı kalmış processing notları pending'e geri döndür
+      await _cleanupProcessingNotes();
 
-      // Sonra pending operasyonları server'a gönder
+      // İlk olarak mevcut duplicate'ları temizle
+      await localDatabaseClient.cleanupDuplicateNotes();
+
+      // Pending operasyonları server'a gönder
       await _syncToServer();
+
+      // NOT: _syncFromServer artık çağrılmıyor çünkü UI zaten server'dan alıyor
+      // Sadece pending'leri sync ediyoruz, UI refresh'i kendisi yapacak
+
+      // Son olarak duplicate notları tekrar temizle
+      await localDatabaseClient.cleanupDuplicateNotes();
 
       debugPrint('✅ Sync işlemi tamamlandı');
     } on Exception catch (e) {
@@ -64,31 +67,9 @@ class SyncService {
     }
   }
 
-  /// Server'dan notları al ve local'e sync et
-  Future<void> _syncFromServer() async {
-    try {
-      debugPrint("📥 Server'dan notlar alınıyor...");
-      final result = await noteRepository.getNotes();
-
-      await result.fold(
-        (failure) {
-          debugPrint("❌ Server'dan notlar alınamadı: ${failure.message}");
-        },
-        (response) async {
-          if (response.data != null) {
-            debugPrint("📥 ${response.data!.length} not server'dan alındı");
-            await localNoteRepository.syncNotesFromServer(response.data!);
-            debugPrint("✅ Server notları local'e sync edildi");
-          }
-        },
-      );
-    } on Exception catch (e) {
-      debugPrint('❌ Server sync hatası: $e');
-    }
-  }
-
   /// Pending operasyonları server'a gönder
   Future<void> _syncToServer() async {
+    debugPrint('🔄 _syncToServer başlatıldı');
     final pendingResult = await localNoteRepository.getPendingNotes();
 
     await pendingResult.fold(
@@ -98,9 +79,20 @@ class SyncService {
       (pendingNotes) async {
         debugPrint('📤 ${pendingNotes.length} pending operasyon bulundu');
 
-        for (final pendingNote in pendingNotes) {
+        if (pendingNotes.isEmpty) {
+          debugPrint('⏭️ Pending not yok, sync atlanıyor');
+          return;
+        }
+
+        for (var i = 0; i < pendingNotes.length; i++) {
+          final pendingNote = pendingNotes[i];
+          debugPrint(
+            '🔄 Pending not ${i + 1}/${pendingNotes.length}: ${pendingNote.title} (Local ID: ${pendingNote.id}, Server ID: ${pendingNote.serverId}, Status: ${pendingNote.syncStatus})',
+          );
           await _syncSingleNote(pendingNote);
         }
+
+        debugPrint('✅ _syncToServer tamamlandı');
       },
     );
   }
@@ -127,7 +119,24 @@ class SyncService {
 
   /// Pending create işlemini handle et
   Future<void> _handlePendingCreate(LocalNoteModel pendingNote) async {
-    debugPrint("📤 Yeni not server'a gönderiliyor: ${pendingNote.title}");
+    debugPrint(
+      "📤 Yeni not server'a gönderiliyor: ${pendingNote.title} (Local ID: ${pendingNote.id}, Server ID: ${pendingNote.serverId})",
+    );
+
+    // Eğer zaten server ID'si varsa, tekrar gönderme
+    if (pendingNote.serverId != null) {
+      debugPrint(
+        "⚠️ Not zaten server ID'si var, atlaniyor: ${pendingNote.title} (Server ID: ${pendingNote.serverId})",
+      );
+      await localNoteRepository.updateSyncStatus(pendingNote.id!, 'synced');
+      return;
+    }
+
+    // Önce sync status'u processing yap (tekrar gönderilmeyi önlemek için)
+    await localNoteRepository.updateSyncStatus(pendingNote.id!, 'processing');
+    debugPrint(
+      '🔄 Not durumu processing yapıldı: ${pendingNote.title} (Local ID: ${pendingNote.id})',
+    );
 
     final noteModel = pendingNote.toNoteModel();
 
@@ -144,17 +153,30 @@ class SyncService {
     );
 
     await result.fold(
-      (failure) {
+      (failure) async {
         debugPrint("❌ Not server'a gönderilemedi: ${failure.message}");
+        // Hata durumunda pending'e geri döndür
+        await localNoteRepository.updateSyncStatus(
+          pendingNote.id!,
+          'pending_create',
+        );
+        debugPrint(
+          "🔄 Not durumu pending_create'e geri döndürüldü: ${pendingNote.title}",
+        );
       },
       (response) async {
         if (response.data?.id != null) {
           // Server'dan ID aldık, local'de server ID'yi güncelle
+          // updateServerId zaten sync_status'u 'synced' yapar
           await localNoteRepository.updateServerId(
             pendingNote.id!,
             response.data!.id!,
           );
-          debugPrint("✅ Not server'a gönderildi, ID: ${response.data!.id}");
+          debugPrint(
+            "✅ Not server'a gönderildi, Local ID: ${pendingNote.id} -> Server ID: ${response.data!.id} (${pendingNote.title})",
+          );
+        } else {
+          debugPrint("❌ Server response'da ID yok: ${pendingNote.title}");
         }
       },
     );
@@ -215,8 +237,10 @@ class SyncService {
       },
       (response) async {
         // Silme başarılı, local'den kalıcı olarak sil
-        await localNoteRepository.updateSyncStatus(pendingNote.id!, 'deleted');
-        debugPrint("✅ Not silme server'a gönderildi");
+        await localDatabaseClient.permanentDeleteNote(pendingNote.id!);
+        debugPrint(
+          "✅ Not silme server'a gönderildi ve local'den kalıcı olarak silindi",
+        );
       },
     );
   }
@@ -227,8 +251,36 @@ class SyncService {
     await syncPendingOperations();
   }
 
+  /// Takılı kalmış processing notları temizle
+  Future<void> _cleanupProcessingNotes() async {
+    try {
+      final processingNotes = await localDatabaseClient.getProcessingNotes();
+      for (final note in processingNotes) {
+        // Processing durumundaki notları tekrar pending yapabilir veya sileriz
+        if (note.syncStatus == 'processing') {
+          // Eğer server_id varsa synced yap, yoksa pending_create yap
+          if (note.serverId != null) {
+            await localNoteRepository.updateSyncStatus(note.id!, 'synced');
+            debugPrint('🔧 Processing not synced yapıldı: ${note.title}');
+          } else {
+            await localNoteRepository.updateSyncStatus(
+              note.id!,
+              'pending_create',
+            );
+            debugPrint(
+              '🔧 Processing not pending_create yapıldı: ${note.title}',
+            );
+          }
+        }
+      }
+    } on Exception catch (e) {
+      debugPrint('❌ Processing notlar temizlenirken hata: $e');
+    }
+  }
+
   /// Service'i temizle
   void dispose() {
-    _connectivitySubscription.cancel();
+    // NOT: Connectivity subscription artık yok
+    debugPrint('🧹 SyncService dispose edildi');
   }
 }

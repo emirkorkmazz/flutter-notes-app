@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 import '/core/core.dart';
@@ -170,24 +171,39 @@ class LocalNoteRepository implements ILocalNoteRepository {
 
       // Server'dan gelen her not için
       for (final serverNote in serverNotes) {
-        if (serverNote.id != null) {
-          final existingNote = await localDatabaseClient.getNoteByServerId(
+        if (serverNote.id != null &&
+            serverNote.title != null &&
+            serverNote.content != null) {
+          // Önce server ID ile kontrol et
+          var existingNote = await localDatabaseClient.getNoteByServerId(
             serverNote.id!,
           );
 
+          // Eğer server ID ile bulunamadıysa, title ve content ile kontrol et
+          existingNote ??= await localDatabaseClient.getNoteByTitleAndContent(
+            serverNote.title!,
+            serverNote.content!,
+          );
+
           if (existingNote != null) {
-            // Mevcut not varsa güncelle (eğer sync status pending değilse)
-            if (existingNote.syncStatus == 'synced') {
+            // Mevcut not varsa güncelle
+            // (pending_create olan notları da güncelle çünkü artık server'da var)
+            if (existingNote.syncStatus == 'synced' ||
+                existingNote.syncStatus == 'pending_create') {
               final updatedNote = LocalNoteModel.fromNoteModel(
                 serverNote,
               ).copyWith(id: existingNote.id);
               await localDatabaseClient.updateNote(updatedNote);
+              debugPrint(
+                '🔄 Not güncellendi: ${serverNote.title} (${existingNote.syncStatus} -> synced)',
+              );
             }
           } else {
-            // Yeni not ise ekle
+            // Gerçekten yeni not ise ekle
             await localDatabaseClient.insertNote(
               LocalNoteModel.fromNoteModel(serverNote),
             );
+            debugPrint('➕ Yeni not eklendi: ${serverNote.title}');
           }
 
           localServerIds.remove(serverNote.id);
