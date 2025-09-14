@@ -31,72 +31,80 @@ class _RegisterViewState extends State<RegisterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<RegisterBloc, RegisterState>(
-        listener: (context, state) {
-          if (state.status == RegisterStatus.success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Kayıt başarıyla tamamlandı! Lütfen giriş yapın.',
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: Assets.images.imBackgroundFirst.provider(),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: BlocConsumer<RegisterBloc, RegisterState>(
+          listener: (context, state) {
+            if (state.status == RegisterStatus.success) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Kayıt başarıyla tamamlandı! Lütfen giriş yapın.',
+                  ),
+                  backgroundColor: Colors.green,
                 ),
-                backgroundColor: Colors.green,
+              );
+              // Login sayfasına yönlendir
+              context.go(AppRouteName.login.path);
+            } else if (state.status == RegisterStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    const SizedBox(height: 20),
+
+                    /// [1] Logo
+                    _buildLogo(),
+                    const SizedBox(height: 20),
+
+                    /// [2] Title
+                    _buildTitle(),
+                    const SizedBox(height: 20),
+
+                    /// [3] Email Field
+                    _buildEmailField(),
+                    const SizedBox(height: 10),
+
+                    /// [4] Password Field
+                    _buildPasswordField(),
+                    const SizedBox(height: 10),
+
+                    /// [5] Confirm Password Field
+                    _buildConfirmPasswordField(),
+                    const SizedBox(height: 30),
+
+                    /// [6] Register Button
+                    _buildRegisterButton(context, state),
+                    const SizedBox(height: 20),
+
+                    /// [7] Divider
+                    _buildDividerWithText(context),
+                    const SizedBox(height: 20),
+
+                    /// [8] Login Button
+                    _buildLoginButton(context),
+                  ],
+                ),
               ),
             );
-            // Login sayfasına yönlendir
-            context.go(AppRouteName.login.path);
-          } else if (state.status == RegisterStatus.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  const SizedBox(height: 80),
-
-                  /// [1] Logo
-                  _buildLogo(),
-                  const SizedBox(height: 50),
-
-                  /// [2] Title
-                  _buildTitle(),
-                  const SizedBox(height: 30),
-
-                  /// [3] Email Field
-                  _buildEmailField(),
-                  const SizedBox(height: 20),
-
-                  /// [4] Password Field
-                  _buildPasswordField(),
-                  const SizedBox(height: 20),
-
-                  /// [5] Confirm Password Field
-                  _buildConfirmPasswordField(),
-                  const SizedBox(height: 30),
-
-                  /// [6] Register Button
-                  _buildRegisterButton(context, state),
-                  const SizedBox(height: 20),
-
-                  /// [7] Divider
-                  _buildDividerWithText(context),
-                  const SizedBox(height: 20),
-
-                  /// [8] Login Button
-                  _buildLoginButton(context),
-                ],
-              ),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -111,12 +119,16 @@ class _RegisterViewState extends State<RegisterView> {
       children: [
         Text(
           'Kayıt Ol',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         SizedBox(height: 8),
         Text(
           'Yeni hesap oluşturun',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          style: TextStyle(fontSize: 16, color: Colors.white),
         ),
       ],
     );
@@ -127,7 +139,11 @@ class _RegisterViewState extends State<RegisterView> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       hintText: 'ornek@email.com',
-      prefix: const Icon(Icons.email_outlined),
+      textInputAction: TextInputAction.next,
+      enabledBorderColor: Colors.white,
+      focusedBorderColor: Colors.white,
+      hintStyle: const TextStyle(color: Colors.white),
+      prefix: const Icon(Icons.email_outlined, color: Colors.white),
       onChanged: (value) {
         context.read<RegisterBloc>().add(RegisterEmailChanged(value));
       },
@@ -147,8 +163,12 @@ class _RegisterViewState extends State<RegisterView> {
     return AppTextField(
       controller: _passwordController,
       obscureText: !_isPasswordVisible,
+      textInputAction: TextInputAction.next,
+      enabledBorderColor: Colors.white,
+      focusedBorderColor: Colors.white,
       hintText: 'Şifrenizi girin',
-      prefix: const Icon(Icons.lock_outlined),
+      hintStyle: const TextStyle(color: Colors.white),
+      prefix: const Icon(Icons.lock_outlined, color: Colors.white),
       suffix: IconButton(
         icon: Icon(
           _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
@@ -179,7 +199,11 @@ class _RegisterViewState extends State<RegisterView> {
       controller: _confirmPasswordController,
       obscureText: !_isConfirmPasswordVisible,
       hintText: 'Şifrenizi tekrar girin',
-      prefix: const Icon(Icons.lock_outlined),
+      textInputAction: TextInputAction.done,
+      enabledBorderColor: Colors.white,
+      focusedBorderColor: Colors.white,
+      hintStyle: const TextStyle(color: Colors.white),
+      prefix: const Icon(Icons.lock_outlined, color: Colors.white),
       suffix: IconButton(
         icon: Icon(
           _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,

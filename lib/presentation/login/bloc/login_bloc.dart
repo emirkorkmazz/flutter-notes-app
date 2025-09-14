@@ -78,25 +78,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         );
       },
       (verifyResponse) async {
-        // Login başarılı, Firebase'den token al ve storage'a kaydet
-        final currentUser = authRepository.getCurrentUser();
-        if (currentUser != null) {
-          final idToken = await currentUser.getIdToken();
+        // Login başarılı, kullanıcı bilgilerini storage'a kaydet
+        await storageRepository.setIsLogged(isLogged: true);
+        await storageRepository.setUsername(
+          username: verifyResponse.data?.email,
+        );
 
-          // Token'ı ve kullanıcı bilgilerini storage'a kaydet
-          await storageRepository.setIdToken(idToken);
-          await storageRepository.setIsLogged(isLogged: true);
-          await storageRepository.setUsername(username: verifyResponse.email);
-
-          emit(state.copyWith(status: LoginStatus.authenticated));
-        } else {
-          emit(
-            state.copyWith(
-              status: LoginStatus.failure,
-              errorMessage: 'Kullanıcı bilgileri alınamadı',
-            ),
-          );
-        }
+        emit(state.copyWith(status: LoginStatus.authenticated));
       },
     );
   }

@@ -1,44 +1,42 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '/data/data.dart';
+
 part 'get_note_by_id_response.g.dart';
 
 @JsonSerializable()
 class GetNoteByIdResponse with EquatableMixin {
   GetNoteByIdResponse({
-    this.id,
-    this.title,
-    this.content,
-    this.createdAt,
-    this.updatedAt,
+    this.isSuccess,
+    this.errorCode,
+    this.message,
+    this.data,
   });
 
   factory GetNoteByIdResponse.fromJson(Map<String, dynamic> json) =>
       _$GetNoteByIdResponseFromJson(json);
-  String? id;
-  String? title;
-  String? content;
-  String? createdAt;
-  String? updatedAt;
+  bool? isSuccess;
+  String? errorCode;
+  String? message;
+  NoteModel? data;
 
   Map<String, dynamic> toJson() => _$GetNoteByIdResponseToJson(this);
 
   @override
-  List<Object?> get props => [id, title, content, createdAt, updatedAt];
+  List<Object?> get props => [isSuccess, errorCode, message, data];
 
   GetNoteByIdResponse copyWith({
-    String? id,
-    String? title,
-    String? content,
-    String? createdAt,
-    String? updatedAt,
+    bool? isSuccess,
+    String? errorCode,
+    String? message,
+    NoteModel? data,
   }) {
     return GetNoteByIdResponse(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      content: content ?? this.content,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      isSuccess: isSuccess ?? this.isSuccess,
+      errorCode: errorCode ?? this.errorCode,
+      message: message ?? this.message,
+      data: data ?? this.data,
     );
   }
 }

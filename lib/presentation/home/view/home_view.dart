@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,9 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _deleteTimer;
+
   @override
   void initState() {
     super.initState();
@@ -22,153 +27,326 @@ class _HomeViewState extends State<HomeView> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    _deleteTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notlarım'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context.read<HomeBloc>().add(const RefreshNotes());
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: Assets.images.imBackgroundFirst.provider(),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top,
+            bottom: 80, // Bottom bar yüksekliği kadar
+          ),
+          child: BlocConsumer<HomeBloc, HomeState>(
+            listener: (context, state) {
+              if (state.status == HomeStatus.failure) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.errorMessage),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+
+              // AI önerisi başarılı olduğunda dialog göster
+              if (state.aiSuggestionStatus == AiSuggestionStatus.success &&
+                  state.aiSuggestion != null) {
+                _showAiSuggestionDialog(context, state.aiSuggestion!);
+                // Dialog gösterildikten sonra state'i temizle
+                context.read<HomeBloc>().add(const ClearAiSuggestion());
+              }
+
+              // AI önerisi hatası
+              if (state.aiSuggestionStatus == AiSuggestionStatus.failure) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.aiSuggestionError),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
+            builder: (context, state) {
+              return Column(
+                children: [
+                  _buildHeader(),
+                  _buildSearchBar(),
+                  const SizedBox(height: 16),
+                  Expanded(child: _buildNotesContent(state)),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Üst kısım - Logo ve + butonu
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Logo
+          Image.asset(Assets.icons.icAppLogo.path, height: 70, width: 70),
+
+          const Spacer(),
+
+          const Text(
+            'Ana Sayfa',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+
+          const Spacer(),
+          // + Butonu
+          FloatingActionButton(
+            onPressed: () {
+              context.push(AppRouteName.addNote.path);
+            },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.blue,
+            child: const Icon(Icons.add),
           ),
         ],
       ),
-      body: BlocConsumer<HomeBloc, HomeState>(
-        listener: (context, state) {
-          if (state.status == HomeStatus.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+    );
+  }
+
+  /// Arama inputu
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          context.read<HomeBloc>().add(SearchChanged(value));
         },
-        builder: (context, state) {
-          if (state.status == HomeStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state.status == HomeStatus.success) {
-            if (state.notes.isEmpty) {
-              return const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.note_add, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      'Henüz not yok',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'İlk notunuzu eklemek için + butonuna basın',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<HomeBloc>().add(const RefreshNotes());
-              },
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.notes.length,
-                itemBuilder: (context, index) {
-                  final note = state.notes[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
-                      title: Text(
-                        note.title ?? 'Başlıksız Not',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 4),
-                          Text(
-                            note.content ?? '',
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Oluşturulma: ${note.createdAt ?? 'Bilinmiyor'}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: PopupMenuButton(
-                        onSelected: (value) {
-                          if (value == 'edit' && note.id != null) {
-                            _navigateToEditNote(context, note);
-                          } else if (value == 'delete' && note.id != null) {
-                            _showDeleteDialog(context, note.id!);
-                          }
-                        },
-                        itemBuilder:
-                            (context) => [
-                              const PopupMenuItem(
-                                value: 'edit',
-                                child: Text('Düzenle'),
-                              ),
-                              const PopupMenuItem(
-                                value: 'delete',
-                                child: Text('Sil'),
-                              ),
-                            ],
-                      ),
-                      onTap: () {
-                        // Not detay sayfasına git
-                        // context.go('/note/${note.id}');
-                      },
-                    ),
-                  );
-                },
-              ),
-            );
-          }
-
-          return const Center(child: Text('Bir hata oluştu'));
-        },
+        decoration: InputDecoration(
+          hintText: 'Notlarda ara...',
+          prefixIcon: const Icon(Icons.search),
+          filled: true,
+          fillColor: Colors.white.withValues(alpha: 0.9),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Not ekleme sayfasına git
-          context.go(AppRouteName.addNote.path);
+    );
+  }
+
+  /// Not içeriği - Pinlenmiş ve normal notlar
+  Widget _buildNotesContent(HomeState state) {
+    if (state.status == HomeStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.status == HomeStatus.success) {
+      // Arama terimine göre notları filtrele
+      final filteredNotes = _filterNotes(state.notes, state.searchTerm);
+      final pinnedNotes =
+          filteredNotes.where((note) => note.pinned ?? false).toList();
+      final regularNotes =
+          filteredNotes.where((note) => note.pinned != true).toList();
+
+      if (filteredNotes.isEmpty) {
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<HomeBloc>().add(const RefreshNotes());
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: SizedBox(
+              height: MediaQuery.of(context).size.height * 0.6,
+              child: _buildEmptyState(state.searchTerm.isNotEmpty),
+            ),
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: () async {
+          context.read<HomeBloc>().add(const RefreshNotes());
         },
-        child: const Icon(Icons.add),
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Pinlenmiş notlar bölümü
+              if (pinnedNotes.isNotEmpty) ...[
+                _buildSectionTitle('Sabitlenmiş'),
+                const SizedBox(height: 8),
+                _buildNotesList(pinnedNotes),
+                const SizedBox(height: 24),
+              ],
+
+              // Normal notlar bölümü
+              if (regularNotes.isNotEmpty) ...[
+                _buildSectionTitle('Günlük Aktif Notlar'),
+                const SizedBox(height: 8),
+                _buildNotesList(regularNotes),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+
+    return const Center(child: Text('Bir hata oluştu'));
+  }
+
+  /// Bölüm başlığı
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
       ),
+    );
+  }
+
+  /// Boş durum widget'ı
+  Widget _buildEmptyState(bool isSearching) {
+    if (isSearching) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 64, color: Colors.white),
+            SizedBox(height: 16),
+            Text(
+              'Arama sonucu bulunamadı',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Farklı bir arama terimi deneyin',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.note_add, size: 64, color: Colors.white),
+            SizedBox(height: 16),
+            Text(
+              'Henüz not yok',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'İlk notunuzu eklemek için + butonuna basın',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  /// Notları filtrele
+  List<NoteModel> _filterNotes(List<NoteModel> notes, String searchTerm) {
+    if (searchTerm.isEmpty) return notes;
+
+    final searchTermLower = searchTerm.toLowerCase();
+    return notes.where((note) {
+      final title = (note.title ?? '').toLowerCase();
+      final content = (note.content ?? '').toLowerCase();
+      return title.contains(searchTermLower) ||
+          content.contains(searchTermLower);
+    }).toList();
+  }
+
+  /// Not listesini oluştur
+  Widget _buildNotesList(List<NoteModel> notes) {
+    return Column(children: notes.map(_buildNoteCard).toList());
+  }
+
+  /// Tek bir not kartı oluştur
+  Widget _buildNoteCard(NoteModel note) {
+    return AppNoteCard(
+      note: note,
+      onEdit: () {
+        if (note.id != null) {
+          _navigateToEditNote(context, note);
+        }
+      },
+      onDelete: () {
+        if (note.id != null) {
+          _showDeleteDialog(context, note.id!);
+        }
+      },
+      onAiSuggestion:
+          note.id != null
+              ? () {
+                _getAiSuggestion(context, note.id!);
+              }
+              : null,
+      onTap: () {
+        // Not detay sayfasına git
+        // context.go('/note/${note.id}');
+      },
     );
   }
 
   /// Edit Note sayfasına yönlendir
-  void _navigateToEditNote(BuildContext context, GetNotesResponse note) {
-    final editPath = AppRouteName.editNote.path.replaceAll(
-      ':noteId',
-      note.id ?? '',
-    );
-    context.go(
-      '$editPath?title=${Uri.encodeComponent(note.title ?? '')}&content=${Uri.encodeComponent(note.content ?? '')}',
+  void _navigateToEditNote(BuildContext context, NoteModel note) {
+    // GoRouter ile EditNoteView'a git
+    context.push(
+      '/editNote/${note.id}?title=${Uri.encodeComponent(note.title ?? '')}&content=${Uri.encodeComponent(note.content ?? '')}&startDate=${Uri.encodeComponent(note.startDate ?? '')}&endDate=${Uri.encodeComponent(note.endDate ?? '')}&pinned=${note.pinned ?? false}&tags=${note.tags?.map((tag) => tag.name).join(',') ?? ''}',
     );
   }
 
   void _showDeleteDialog(BuildContext context, String noteId) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder:
           (context) => AlertDialog(
@@ -182,12 +360,68 @@ class _HomeViewState extends State<HomeView> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  context.read<HomeBloc>().add(DeleteNote(noteId));
+                  _deleteNoteWithUndo(context, noteId);
                 },
                 child: const Text('Sil'),
               ),
             ],
           ),
+    );
+  }
+
+  void _deleteNoteWithUndo(BuildContext context, String noteId) {
+    // Önce notu listeden kaldır (geçici olarak)
+    final homeBloc = context.read<HomeBloc>();
+    final currentState = homeBloc.state;
+    final noteToDelete = currentState.notes.firstWhere(
+      (note) => note.id == noteId,
+    );
+
+    // State'i güncelle (notu geçici olarak kaldır)
+    homeBloc.add(TemporarilyRemoveNote(noteId));
+
+    // Snackbar göster
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Not başarılı bir şekilde silindi.'),
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Geri Al',
+          onPressed: () {
+            // Timer'ı iptal et
+            _deleteTimer?.cancel();
+            // Notu geri ekle
+            homeBloc.add(RestoreNote(noteToDelete));
+          },
+        ),
+      ),
+    );
+
+    // 5 saniye sonra gerçek silme işlemini yap
+    _deleteTimer = Timer(const Duration(seconds: 5), () {
+      // Context'in hala geçerli olup olmadığını kontrol et
+      if (mounted) {
+        final currentNotes = homeBloc.state.notes;
+        if (!currentNotes.any((note) => note.id == noteId)) {
+          homeBloc.add(DeleteNote(noteId));
+        }
+      }
+    });
+  }
+
+  /// AI önerisi al
+  void _getAiSuggestion(BuildContext context, String noteId) {
+    context.read<HomeBloc>().add(GetAiSuggestion(noteId));
+  }
+
+  /// AI önerisi dialog'unu göster
+  void _showAiSuggestionDialog(
+    BuildContext context,
+    GetAiSuggestionData aiSuggestion,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => AiSuggestionDialog(aiSuggestion: aiSuggestion),
     );
   }
 }

@@ -28,66 +28,74 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocConsumer<LoginBloc, LoginState>(
-        listener: (context, state) {
-          if (state.status == LoginStatus.authenticated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Giriş başarıyla tamamlandı!'),
-                backgroundColor: Colors.green,
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: Assets.images.imBackgroundFirst.provider(),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: BlocConsumer<LoginBloc, LoginState>(
+          listener: (context, state) {
+            if (state.status == LoginStatus.authenticated) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Giriş başarıyla tamamlandı!'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              // Ana sayfaya yönlendir
+              context.go(AppRouteName.home.path);
+            } else if (state.status == LoginStatus.failure) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  children: [
+                    const SizedBox(height: 60),
+
+                    /// [1] Logo
+                    _buildLogo(),
+                    const SizedBox(height: 50),
+
+                    /// [2] Title
+                    _buildTitle(),
+                    const SizedBox(height: 30),
+
+                    /// [3] Email Field
+                    _buildEmailField(),
+                    const SizedBox(height: 10),
+
+                    /// [4] Password Field
+                    _buildPasswordField(),
+                    const SizedBox(height: 20),
+
+                    /// [5] Login Button
+                    _buildLoginButton(context, state),
+                    const SizedBox(height: 20),
+
+                    /// [6] Divider
+                    _buildDividerWithText(context),
+                    const SizedBox(height: 20),
+
+                    /// [7] Register Button
+                    _buildRegisterButton(context),
+                  ],
+                ),
               ),
             );
-            // Ana sayfaya yönlendir
-            context.go(AppRouteName.home.path);
-          } else if (state.status == LoginStatus.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Form(
-              key: _formKey,
-              child: ListView(
-                children: [
-                  const SizedBox(height: 80),
-
-                  /// [1] Logo
-                  _buildLogo(),
-                  const SizedBox(height: 50),
-
-                  /// [2] Title
-                  _buildTitle(),
-                  const SizedBox(height: 30),
-
-                  /// [3] Email Field
-                  _buildEmailField(),
-                  const SizedBox(height: 20),
-
-                  /// [4] Password Field
-                  _buildPasswordField(),
-                  const SizedBox(height: 30),
-
-                  /// [5] Login Button
-                  _buildLoginButton(context, state),
-                  const SizedBox(height: 20),
-
-                  /// [6] Divider
-                  _buildDividerWithText(context),
-                  const SizedBox(height: 20),
-
-                  /// [7] Register Button
-                  _buildRegisterButton(context),
-                ],
-              ),
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -102,12 +110,16 @@ class _LoginViewState extends State<LoginView> {
       children: [
         Text(
           'Giriş Yap',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         SizedBox(height: 8),
         Text(
           'Hesabınıza giriş yapın',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+          style: TextStyle(fontSize: 16, color: Colors.white),
         ),
       ],
     );
@@ -118,7 +130,12 @@ class _LoginViewState extends State<LoginView> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       hintText: 'ornek@email.com',
-      prefix: const Icon(Icons.email_outlined),
+      textInputAction: TextInputAction.next,
+      enabledBorderColor: Colors.white,
+      focusedBorderColor: Colors.white,
+
+      hintStyle: const TextStyle(color: Colors.white),
+      prefix: const Icon(Icons.email_outlined, color: Colors.white),
       onChanged: (value) {
         context.read<LoginBloc>().add(LoginEmailChanged(value));
       },
@@ -138,11 +155,15 @@ class _LoginViewState extends State<LoginView> {
     return AppTextField(
       controller: _passwordController,
       obscureText: !_isPasswordVisible,
+      enabledBorderColor: Colors.white,
+      focusedBorderColor: Colors.white,
       hintText: 'Şifrenizi girin',
-      prefix: const Icon(Icons.lock_outlined),
+      hintStyle: const TextStyle(color: Colors.white),
+      prefix: const Icon(Icons.lock_outlined, color: Colors.white),
       suffix: IconButton(
         icon: Icon(
           _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+          color: Colors.black,
         ),
         onPressed: () {
           setState(() {

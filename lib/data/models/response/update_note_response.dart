@@ -1,44 +1,37 @@
 import 'package:equatable/equatable.dart';
 import 'package:json_annotation/json_annotation.dart';
 
+import '/data/data.dart';
+
 part 'update_note_response.g.dart';
 
 @JsonSerializable()
 class UpdateNoteResponse with EquatableMixin {
-  UpdateNoteResponse({
-    this.id,
-    this.title,
-    this.content,
-    this.createdAt,
-    this.updatedAt,
-  });
+  UpdateNoteResponse({this.isSuccess, this.errorCode, this.message, this.data});
 
   factory UpdateNoteResponse.fromJson(Map<String, dynamic> json) =>
       _$UpdateNoteResponseFromJson(json);
-  String? id;
-  String? title;
-  String? content;
-  String? createdAt;
-  String? updatedAt;
+  bool? isSuccess;
+  String? errorCode;
+  String? message;
+  NoteModel? data;
 
   Map<String, dynamic> toJson() => _$UpdateNoteResponseToJson(this);
 
   @override
-  List<Object?> get props => [id, title, content, createdAt, updatedAt];
+  List<Object?> get props => [isSuccess, errorCode, message, data];
 
   UpdateNoteResponse copyWith({
-    String? id,
-    String? title,
-    String? content,
-    String? createdAt,
-    String? updatedAt,
+    bool? isSuccess,
+    String? errorCode,
+    String? message,
+    NoteModel? data,
   }) {
     return UpdateNoteResponse(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      content: content ?? this.content,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      isSuccess: isSuccess ?? this.isSuccess,
+      errorCode: errorCode ?? this.errorCode,
+      message: message ?? this.message,
+      data: data ?? this.data,
     );
   }
 }

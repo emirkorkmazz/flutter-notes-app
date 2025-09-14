@@ -13,12 +13,15 @@ class AppTextField extends StatelessWidget {
     this.autocorrect = true,
     this.readOnly = false,
     this.hintText,
+    this.hintStyle,
     this.errorText,
     this.prefix,
     this.suffix,
     this.keyboardType,
     this.textInputAction,
     this.obscureText = false,
+    this.enabledBorderColor,
+    this.focusedBorderColor,
     this.onChanged,
     this.onSubmitted,
     this.validator,
@@ -48,6 +51,9 @@ class AppTextField extends StatelessWidget {
 
   /// Text that suggests what sort of input the field accepts.
   final String? hintText;
+
+  /// Text that suggests what sort of input the field accepts.
+  final TextStyle? hintStyle;
 
   /// Text that appears below the field.
   final String? errorText;
@@ -83,6 +89,12 @@ class AppTextField extends StatelessWidget {
   final bool fillColorWhiteEnabled;
 
   ///
+  final Color? enabledBorderColor;
+
+  ///
+  final Color? focusedBorderColor;
+
+  ///
   final int? minLines;
 
   ///
@@ -110,26 +122,44 @@ class AppTextField extends StatelessWidget {
             maxLines: obscureText ? 1 : maxLines,
             autofillHints: autoFillHints,
 
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w400),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
             onFieldSubmitted: onSubmitted,
             decoration: InputDecoration(
+              hintStyle:
+                  hintStyle ??
+                  const TextStyle(color: Colors.white70, fontSize: 16),
               filled: fillColorWhiteEnabled ? true : null,
               fillColor: fillColorWhiteEnabled ? Colors.white : null,
               contentPadding: const EdgeInsets.all(16),
               hintText: hintText,
               errorText: errorText,
-              prefixIcon: prefix,
-              suffixIcon: suffix,
+              prefixIcon:
+                  prefix != null
+                      ? IconTheme(
+                        data: const IconThemeData(color: Colors.white),
+                        child: prefix!,
+                      )
+                      : null,
+              suffixIcon:
+                  suffix != null
+                      ? IconTheme(
+                        data: const IconThemeData(color: Colors.white),
+                        child: suffix!,
+                      )
+                      : null,
               suffixIconConstraints: const BoxConstraints.tightFor(
-                width: 32,
-                height: 32,
+                width: 65,
+                height: 40,
               ),
               prefixIconConstraints: const BoxConstraints.tightFor(width: 48),
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
+                  color:
+                      enabledBorderColor ??
+                      Theme.of(context).colorScheme.primary,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -138,7 +168,9 @@ class AppTextField extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(
-                  color: Theme.of(context).colorScheme.primary,
+                  color:
+                      focusedBorderColor ??
+                      Theme.of(context).colorScheme.primary,
                   width: 2,
                 ),
                 borderRadius: BorderRadius.circular(8),

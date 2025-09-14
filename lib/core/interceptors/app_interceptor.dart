@@ -41,6 +41,37 @@ class AppInterceptor extends Interceptor {
     DioException dioException,
     ErrorInterceptorHandler handler,
   ) async {
+    // 401 Unauthorized hatası kontrolü
+    if (dioException.response?.statusCode == 401) {
+      try {
+        // AuthRepository'den yeni token al
+        final authResult = await getIt<IAuthRepository>().getIdToken();
+
+        if (authResult.isSuccess) {
+          final newToken = authResult.data!;
+
+          // Yeni token'ı storage'a kaydet
+          await getIt<IStorageRepository>().setIdToken(newToken);
+
+          // Orijinal isteği yeni token ile tekrar gönder
+          final options = dioException.requestOptions;
+          options.headers['Authorization'] = 'Bearer $newToken';
+
+          try {
+            final dio = Dio();
+            final response = await dio.fetch<dynamic>(options);
+            return handler.resolve(response);
+          } on DioException {
+            // Yeniden deneme başarısız olursa orijinal hatayı döndür
+            return handler.next(dioException);
+          }
+        }
+      } on Exception {
+        // Token yenileme başarısız olursa orijinal hatayı döndür
+        return handler.next(dioException);
+      }
+    }
+
     /// Diğer HTTP hataları için standart hata işleme devam eder.
     return handler.next(dioException);
   }

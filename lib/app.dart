@@ -17,6 +17,8 @@ class App extends StatelessWidget {
         BlocProvider(create: (context) => getIt<HomeBloc>()),
         BlocProvider(create: (context) => getIt<AddNoteCubit>()),
         BlocProvider(create: (context) => getIt<EditNoteCubit>()),
+        BlocProvider(create: (context) => getIt<AllNotesCubit>()),
+        BlocProvider(create: (context) => getIt<SettingsCubit>()),
       ],
       child: MaterialApp.router(
         title: 'NoteApp',

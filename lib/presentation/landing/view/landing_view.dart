@@ -10,9 +10,17 @@ class LandingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ///
-    return const Scaffold(
+    return Scaffold(
       ///
-      body: _LandingViewBody(),
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: Assets.images.imBackgroundFirst.provider(),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: const _LandingViewBody(),
+      ),
     );
   }
 }
@@ -22,29 +30,33 @@ class _LandingViewBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: ListView(
-        children: [
-          /// [1] Logo
-          _buildLogo(),
-          const SizedBox(height: 50),
+    return DecoratedBox(
+      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.1)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            /// [1] Logo
+            _buildLogo(),
+            const SizedBox(height: 50),
 
-          /// [2] Text Message
-          _buildLandingTextMessage(),
-          const SizedBox(height: 10),
+            /// [2] Text Message
+            _buildLandingTextMessage(),
+            const SizedBox(height: 10),
 
-          /// [3] SignUp Button
-          _buildSignupButton(context),
-          const SizedBox(height: 10),
+            /// [3] SignUp Button
+            _buildSignupButton(context),
+            const SizedBox(height: 10),
 
-          /// [4] Divider
-          _buildDividerWithText(context),
-          const SizedBox(height: 10),
+            /// [4] Divider
+            _buildDividerWithText(context),
+            const SizedBox(height: 10),
 
-          /// [5] Login Button
-          _buildLoginButton(context),
-        ],
+            /// [5] Login Button
+            _buildLoginButton(context),
+          ],
+        ),
       ),
     );
   }
@@ -55,13 +67,13 @@ class _LandingViewBody extends StatelessWidget {
 
   Widget _buildLandingTextMessage() {
     return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text("Noteapp'e Hoşgeldiniz", style: TextStyle(fontSize: 18)),
+        SizedBox(height: 10),
         Text(
           'Lütfen giriş yapınız veya kayıt olunuz.',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -95,7 +107,7 @@ class _LandingViewBody extends StatelessWidget {
         ),
         const Text(
           'veya',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
         Expanded(
           child: Divider(

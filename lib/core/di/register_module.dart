@@ -14,7 +14,7 @@ abstract class RegisterModule {
   ///
   @singleton
   Dio get dio =>
-      Dio(BaseOptions(baseUrl: 'http://localhost:8000'))
+      Dio(BaseOptions(baseUrl: 'http://172.20.10.8:8000'))
         ..interceptors.addAll([
           const AppInterceptor(),
           if (kDebugMode)

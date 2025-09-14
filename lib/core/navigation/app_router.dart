@@ -11,6 +11,9 @@ import '/presentation/presentation.dart';
 /// Uygulamanın Ana Navigator'unu yönetmesi için GlobalKey.
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
+/// Bottom Navigation Bar'ını yönetmesi için GlobalKey.
+final shellNavigatorKey = GlobalKey<NavigatorState>();
+
 final appRouter = GoRouter(
   /// Ana Navigator anahtarını bu parametreye veriyoruz.
   navigatorKey: rootNavigatorKey,
@@ -54,21 +57,42 @@ List<RouteBase> get _routes {
       builder: (context, state) => const RegisterView(),
     ),
 
-    /// Dashboard Ekranı için Rota
-    GoRoute(
-      path: AppRouteName.home.path,
-      name: AppRouteName.home.withoutSlash,
-      builder: (context, state) => const HomeView(),
+    /// Shell Route - Bottom Navigation Bar ile Ana Sayfalar
+    ShellRoute(
+      navigatorKey: shellNavigatorKey,
+      builder: (context, state, child) => ScaffoldWithBottomNav(child: child),
+      routes: [
+        /// Dashboard Ekranı için Rota
+        GoRoute(
+          path: AppRouteName.home.path,
+          name: AppRouteName.home.withoutSlash,
+          builder: (context, state) => const HomeView(),
+        ),
+
+        /// Tüm Notlar Ekranı için Rota
+        GoRoute(
+          path: AppRouteName.allNotes.path,
+          name: AppRouteName.allNotes.withoutSlash,
+          builder: (context, state) => const AllNotesView(),
+        ),
+
+        /// Ayarlar Ekranı için Rota
+        GoRoute(
+          path: AppRouteName.settings.path,
+          name: AppRouteName.settings.withoutSlash,
+          builder: (context, state) => const SettingsView(),
+        ),
+      ],
     ),
 
-    /// Not Ekle Ekranı için Rota
+    /// Not Ekle Ekranı için Rota (Bottom bar olmadan)
     GoRoute(
       path: AppRouteName.addNote.path,
       name: AppRouteName.addNote.withoutSlash,
       builder: (context, state) => const AddNoteView(),
     ),
 
-    /// Not Düzenle Ekranı için Rota
+    /// Not Düzenle Ekranı için Rota (Bottom bar olmadan)
     GoRoute(
       path: AppRouteName.editNote.path,
       name: AppRouteName.editNote.withoutSlash,
@@ -76,13 +100,69 @@ List<RouteBase> get _routes {
         final noteId = state.pathParameters['noteId']!;
         final title = state.uri.queryParameters['title'] ?? '';
         final content = state.uri.queryParameters['content'] ?? '';
+        final startDateRaw = state.uri.queryParameters['startDate'];
+        final endDateRaw = state.uri.queryParameters['endDate'];
+        final pinned = state.uri.queryParameters['pinned'] == 'true';
+        final tagsString = state.uri.queryParameters['tags'] ?? '';
+        final tags =
+            tagsString.isEmpty
+                ? <NoteTag>[]
+                : tagsString
+                    .split(',')
+                    .map(
+                      (tagName) => NoteTag.values.firstWhere(
+                        (tag) => tag.name == tagName,
+                        orElse: () => NoteTag.work,
+                      ),
+                    )
+                    .toList();
+
+        // Tarih formatını dönüştür (ISO format'tan DD/MM/YYYY formatına)
+        String? startDate;
+        String? endDate;
+
+        if (startDateRaw != null && startDateRaw.isNotEmpty) {
+          try {
+            final date = DateTime.parse(startDateRaw);
+            startDate = DateFormatter.formatToDisplayFormat(date);
+          } on FormatException {
+            startDate = startDateRaw; // Parse edilemezse orijinal değeri kullan
+          }
+        }
+
+        if (endDateRaw != null && endDateRaw.isNotEmpty) {
+          try {
+            final date = DateTime.parse(endDateRaw);
+            endDate = DateFormatter.formatToDisplayFormat(date);
+          } on FormatException {
+            endDate = endDateRaw; // Parse edilemezse orijinal değeri kullan
+          }
+        }
 
         return EditNoteView(
           noteId: noteId,
           initialTitle: title,
           initialContent: content,
+          initialStartDate: startDate,
+          initialEndDate: endDate,
+          initialPinned: pinned,
+          initialTags: tags,
         );
       },
+    ),
+
+    /// Yardım Ekranı için Rota (Bottom bar olmadan)
+    GoRoute(
+      path: AppRouteName.help.path,
+      name: AppRouteName.help.withoutSlash,
+      builder: (context, state) => const HelpView(),
+    ),
+
+    /// Hakkında Ekranı için Rota (Bottom bar olmadan)
+    GoRoute(
+      path: AppRouteName.about.path,
+      name: AppRouteName.about.withoutSlash,
+      builder: (context, state) => const AboutView(),
     ),
   ];
 }
@@ -96,9 +176,6 @@ FutureOr<String?> _routeGuard(BuildContext context, GoRouterState state) async {
 
   /// Kullanıcının Giriş Yapıp Yapmadığını Kontrol Etme
   final isLoggedIn = (await storageRepository.getIsLogged()) ?? false;
-  log(
-    'Durumlar - isFirstTimeAppOpen: $isFirstTimeAppOpen, isLoggedIn: $isLoggedIn',
-  );
 
   /// Kullanıcının Bulunduğu Sayfanın Yolunu Alma
   final currentLocation = state.matchedLocation;

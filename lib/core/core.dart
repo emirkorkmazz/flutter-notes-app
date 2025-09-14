@@ -6,5 +6,7 @@ export 'gen/gen.dart';
 export 'helpers/helpers.dart';
 export 'interceptors/interceptors.dart';
 export 'navigation/navigation.dart';
+export 'services/connectivity_service.dart';
+export 'services/sync_service.dart';
 export 'theme/theme.dart';
 export 'widgets/widgets.dart';

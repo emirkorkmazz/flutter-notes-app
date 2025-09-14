@@ -3,6 +3,7 @@ import 'package:injectable/injectable.dart';
 
 import '/core/core.dart';
 import '/data/data.dart';
+import 'domain.dart';
 
 abstract class IAuthRepository {
   /// Kullanıcı kayıt işlemi
@@ -22,14 +23,25 @@ abstract class IAuthRepository {
 
   /// Mevcut kullanıcıyı getir
   User? getCurrentUser();
+
+  /// Firebase'den güncel token al
+  Future<Result<String>> getIdToken();
+
+  /// Kullanıcı bilgilerini getir
+  Future<Result<UserInfoResponse>> getUserInfo();
 }
 
 @Injectable(as: IAuthRepository)
 class AuthRepository implements IAuthRepository {
-  const AuthRepository({required this.auth, required this.authClient});
+  const AuthRepository({
+    required this.auth,
+    required this.authClient,
+    required this.storageRepository,
+  });
 
   final FirebaseAuth auth;
   final AuthClient authClient;
+  final IStorageRepository storageRepository;
 
   @override
   Future<Result<VerifyTokenResponse>> registerUser({
@@ -58,9 +70,11 @@ class AuthRepository implements IAuthRepository {
       // Kayıt başarılı - kullanıcı bilgilerini döndür
       final user = credential.user!;
       final verifyResponse = VerifyTokenResponse(
-        email: user.email ?? email,
-        id: user.uid,
-        createdAt: DateTime.now().toIso8601String(),
+        data: VerifyTokenData(
+          email: user.email ?? email,
+          id: user.uid,
+          createdAt: DateTime.now().toIso8601String(),
+        ),
       );
 
       // Register işleminden sonra kullanıcıyı logout yap
@@ -93,13 +107,15 @@ class AuthRepository implements IAuthRepository {
         return Result.failure(const AuthFailure(message: 'Giriş yapılamadı'));
       }
 
-      // Firebase'den token al
+      // Firebase'den yeni token al
       final idToken = await credential.user!.getIdToken();
       if (idToken == null) {
         return Result.failure(const AuthFailure(message: 'Token alınamadı'));
       }
 
-      // Backend'e token doğrulama isteği gönder
+      // Yeni token'ı storage'a kaydet (AuthInterceptor'ın kullanması için)
+      await storageRepository.setIdToken(idToken);
+
       final verifyResponse = await authClient.verifyToken();
 
       return Result.success(verifyResponse);
@@ -127,6 +143,49 @@ class AuthRepository implements IAuthRepository {
   @override
   User? getCurrentUser() {
     return auth.currentUser;
+  }
+
+  @override
+  Future<Result<String>> getIdToken() async {
+    try {
+      final user = auth.currentUser;
+      if (user == null) {
+        return Result.failure(
+          const AuthFailure(message: 'Kullanıcı oturum açmamış'),
+        );
+      }
+
+      // Firebase'den yeni token al
+      final idToken = await user.getIdToken(true);
+      if (idToken == null || idToken.isEmpty) {
+        return Result.failure(const AuthFailure(message: 'Token alınamadı'));
+      }
+
+      return Result.success(idToken);
+    } on FirebaseAuthException catch (e) {
+      return Result.failure(AuthFailure(message: _getAuthErrorMessage(e.code)));
+    } on Exception catch (e) {
+      return Result.failure(AuthFailure(message: 'Token alma hatası: $e'));
+    }
+  }
+
+  @override
+  Future<Result<UserInfoResponse>> getUserInfo() async {
+    try {
+      final user = auth.currentUser;
+      if (user == null) {
+        return Result.failure(
+          const AuthFailure(message: 'Kullanıcı oturum açmamış'),
+        );
+      }
+
+      final response = await authClient.userInfo();
+      return Result.success(response.data);
+    } on Exception catch (e) {
+      return Result.failure(
+        AuthFailure(message: 'Kullanıcı bilgileri alınamadı: $e'),
+      );
+    }
   }
 
   /// Firebase Auth hata kodlarını Türkçe mesajlara çevir
