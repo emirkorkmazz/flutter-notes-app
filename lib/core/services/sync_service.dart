@@ -57,7 +57,7 @@ class SyncService {
       await _syncToServer();
 
       debugPrint('✅ Sync işlemi tamamlandı');
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('❌ Sync işlemi başarısız: $e');
     } finally {
       _isSyncing = false;
@@ -82,7 +82,7 @@ class SyncService {
           }
         },
       );
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('❌ Server sync hatası: $e');
     }
   }
@@ -118,7 +118,7 @@ class SyncService {
         default:
           debugPrint('⚠️ Bilinmeyen sync status: ${pendingNote.syncStatus}');
       }
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('❌ Not sync edilirken hata: $e');
       // Hata durumunda sync status'u hata olarak işaretleyebiliriz
       // Şimdilik atlıyoruz

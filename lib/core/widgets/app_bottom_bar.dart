@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '/core/core.dart';
 
 class AppBottomBar extends StatelessWidget {
   const AppBottomBar({
@@ -33,9 +32,8 @@ class AppBottomBar extends StatelessWidget {
                   child: _buildNavItem(
                     context: context,
                     index: 0,
-                    image: Assets.icons.icAppLogo.path,
-                    selectedImage: Assets.icons.icAppLogo.path,
-                    label: 'Homepage',
+                    icon: Icons.list,
+                    label: 'Tüm Notlar',
                     isSelected: currentIndex == 0,
                   ),
                 ),
@@ -55,9 +53,8 @@ class AppBottomBar extends StatelessWidget {
                   child: _buildNavItem(
                     context: context,
                     index: 2,
-                    image: Assets.icons.icAppLogo.path,
-                    selectedImage: Assets.icons.icAppLogo.path,
-                    label: 'Settings',
+                    icon: Icons.settings,
+                    label: 'Ayarlar',
                     isSelected: currentIndex == 2,
                   ),
                 ),
@@ -72,8 +69,7 @@ class AppBottomBar extends StatelessWidget {
   Widget _buildNavItem({
     required BuildContext context,
     required int index,
-    required String image,
-    required String selectedImage,
+    required IconData icon,
     required String label,
     required bool isSelected,
   }) {
@@ -85,11 +81,10 @@ class AppBottomBar extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              isSelected ? selectedImage : image,
+            Icon(
+              icon,
               color: isSelected ? Colors.black : Colors.white,
-              width: 28,
-              height: 28,
+              size: 28,
             ),
             const SizedBox(height: 4),
             Text(

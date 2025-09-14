@@ -405,7 +405,6 @@ class _AllNotesViewState extends State<AllNotesView> {
   ) {
     showDialog<void>(
       context: context,
-      barrierDismissible: true,
       builder: (context) => AiSuggestionDialog(aiSuggestion: aiSuggestion),
     );
   }

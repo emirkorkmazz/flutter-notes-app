@@ -229,7 +229,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         // Sadece startDate varsa, bugün ve gelecek tarihli notları göster
         return startDateOnly.isAtSameMomentAs(today) ||
             startDateOnly.isAfter(today);
-      } catch (e) {
+      } on FormatException {
         // Tarih parse edilemezse, notu göster
         return true;
       }

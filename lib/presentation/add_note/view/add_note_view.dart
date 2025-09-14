@@ -22,7 +22,6 @@ class _AddNoteViewState extends State<AddNoteView> {
   @override
   void initState() {
     super.initState();
-    // Sayfa açıldığında form'u temizle
     _resetForm();
   }
 
@@ -97,314 +96,17 @@ class _AddNoteViewState extends State<AddNoteView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      /// Not Başlığı
-                      _buildSectionCard(
-                        title: 'Not Başlığı',
-                        icon: Icons.title,
-                        child: AppTextField(
-                          controller: _titleController,
-                          hintText: 'Not başlığınızı girin...',
-                          prefix: const Icon(Icons.edit),
-                          onChanged: (value) {
-                            context.read<AddNoteCubit>().titleChanged(value);
-                          },
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Başlık gerekli';
-                            }
-                            return null;
-                          },
-                        ),
-                      ),
+                      _buildTitleSection(),
                       const SizedBox(height: 20),
-
-                      /// Not İçeriği
-                      _buildSectionCard(
-                        title: 'Not İçeriği',
-                        icon: Icons.description,
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(minHeight: 200),
-                          child: AppTextField(
-                            controller: _contentController,
-                            hintText: 'Not içeriğinizi yazın...',
-                            maxLines: 10,
-                            onChanged: (value) {
-                              context.read<AddNoteCubit>().contentChanged(
-                                value,
-                              );
-                            },
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'İçerik gerekli';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                      ),
+                      _buildContentSection(),
                       const SizedBox(height: 20),
-
-                      /// Tarih Alanları
-                      _buildSectionCard(
-                        title: 'Tarih Aralığı',
-                        icon: Icons.calendar_month,
-                        child: Column(
-                          children: [
-                            _buildDateSelector(
-                              context: context,
-                              controller: _startDateController,
-                              label: 'Başlangıç Tarihi',
-                              icon: Icons.calendar_today,
-                              onTap: () => _selectStartDate(context),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildDateSelector(
-                              context: context,
-                              controller: _endDateController,
-                              label: 'Bitiş Tarihi',
-                              icon: Icons.event,
-                              onTap: () => _selectEndDate(context),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildDateSection(),
                       const SizedBox(height: 20),
-
-                      /// Notu Sabitle
-                      BlocBuilder<AddNoteCubit, AddNoteState>(
-                        builder: (context, state) {
-                          return _buildSectionCard(
-                            title: 'Notu Sabitle',
-                            icon: Icons.push_pin,
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.push_pin,
-                                    color:
-                                        state.pinned
-                                            ? Colors.amber
-                                            : Colors.white70,
-                                    size: 24,
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const Text(
-                                          'Bu notu listenin üstünde göster',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          state.pinned
-                                              ? 'Not sabitlendi'
-                                              : 'Not sabitlenmedi',
-                                          style: TextStyle(
-                                            color:
-                                                state.pinned
-                                                    ? Colors.amber
-                                                    : Colors.white70,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Switch(
-                                    value: state.pinned,
-                                    onChanged: (value) {
-                                      context
-                                          .read<AddNoteCubit>()
-                                          .pinnedChanged(value);
-                                    },
-                                    activeColor: Colors.amber,
-                                    activeTrackColor: Colors.amber.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      _buildPinSection(),
                       const SizedBox(height: 20),
-
-                      /// Etiketler
-                      BlocBuilder<AddNoteCubit, AddNoteState>(
-                        builder: (context, state) {
-                          return _buildSectionCard(
-                            title: 'Etiketler',
-                            icon: Icons.label,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (state.tags.isNotEmpty) ...[
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children:
-                                        state.tags
-                                            .map(
-                                              (tag) => Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12,
-                                                      vertical: 6,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.blue.withValues(
-                                                    alpha: 0.2,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  border: Border.all(
-                                                    color: Colors.blue
-                                                        .withValues(alpha: 0.5),
-                                                  ),
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      tag.displayName,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 6),
-                                                    GestureDetector(
-                                                      onTap: () {
-                                                        context
-                                                            .read<
-                                                              AddNoteCubit
-                                                            >()
-                                                            .tagRemoved(tag);
-                                                      },
-                                                      child: const Icon(
-                                                        Icons.close,
-                                                        size: 16,
-                                                        color: Colors.white70,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            )
-                                            .toList(),
-                                  ),
-                                  const SizedBox(height: 16),
-                                ],
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: () => _showTagSelector(context),
-                                    icon: const Icon(Icons.add_circle_outline),
-                                    label: Text(
-                                      state.tags.isEmpty
-                                          ? 'Etiket Ekle'
-                                          : 'Başka Etiket Ekle',
-                                    ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        side: BorderSide(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.2,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                      _buildTagsSection(),
                       const SizedBox(height: 32),
-
-                      /// Kaydet Butonu
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.blue.withValues(alpha: 0.8),
-                              Colors.purple.withValues(alpha: 0.8),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: AppElevatedButton(
-                          onPressed:
-                              state.status == AddNoteStatus.loading ||
-                                      !state.isValid
-                                  ? null
-                                  : () => _saveNote(context, state),
-
-                          child:
-                              state.status == AddNoteStatus.loading
-                                  ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                  : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.save, size: 20),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Notu Kaydet',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                        ),
-                      ),
+                      _buildSaveButton(),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -426,6 +128,8 @@ class _AddNoteViewState extends State<AddNoteView> {
 
   /// Başlangıç tarihi seç
   Future<void> _selectStartDate(BuildContext context) async {
+    final cubit = context.read<AddNoteCubit>();
+
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -433,22 +137,25 @@ class _AddNoteViewState extends State<AddNoteView> {
       lastDate: DateTime(2100),
     );
 
+    if (!mounted) return;
+
     if (picked != null) {
-      final formattedDate =
-          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      final formattedDate = DateFormatter.formatToDisplayFormat(picked);
       debugPrint('Start Date Selected: "$formattedDate"');
       _startDateController.text = formattedDate;
-      context.read<AddNoteCubit>().startDateChanged(formattedDate);
+      cubit.startDateChanged(formattedDate);
     } else {
       // Tarih seçilmediğinde null gönder
       debugPrint('Start Date Not Selected');
       _startDateController.clear();
-      context.read<AddNoteCubit>().startDateChanged(null);
+      cubit.startDateChanged(null);
     }
   }
 
   /// Bitiş tarihi seç
   Future<void> _selectEndDate(BuildContext context) async {
+    final cubit = context.read<AddNoteCubit>();
+
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -456,17 +163,18 @@ class _AddNoteViewState extends State<AddNoteView> {
       lastDate: DateTime(2100),
     );
 
+    if (!mounted) return;
+
     if (picked != null) {
-      final formattedDate =
-          '${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}';
+      final formattedDate = DateFormatter.formatToDisplayFormat(picked);
       debugPrint('End Date Selected: "$formattedDate"');
       _endDateController.text = formattedDate;
-      context.read<AddNoteCubit>().endDateChanged(formattedDate);
+      cubit.endDateChanged(formattedDate);
     } else {
       // Tarih seçilmediğinde null gönder
       debugPrint('End Date Not Selected');
       _endDateController.clear();
-      context.read<AddNoteCubit>().endDateChanged(null);
+      cubit.endDateChanged(null);
     }
   }
 
@@ -529,14 +237,11 @@ class _AddNoteViewState extends State<AddNoteView> {
     required IconData icon,
     required Widget child,
   }) {
-    return Container(
+    return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.15),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -595,10 +300,7 @@ class _AddNoteViewState extends State<AddNoteView> {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.2),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -645,6 +347,290 @@ class _AddNoteViewState extends State<AddNoteView> {
     _contentController.clear();
     _startDateController.clear();
     _endDateController.clear();
-    context.read<AddNoteCubit>().reset();
+    if (mounted) {
+      context.read<AddNoteCubit>().reset();
+    }
+  }
+
+  /// Not başlığı bölümü
+  Widget _buildTitleSection() {
+    return _buildSectionCard(
+      title: 'Not Başlığı',
+      icon: Icons.title,
+      child: AppTextField(
+        controller: _titleController,
+        hintText: 'Not başlığınızı girin...',
+        prefix: const Icon(Icons.edit),
+        onChanged: (value) {
+          context.read<AddNoteCubit>().titleChanged(value);
+        },
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Başlık gerekli';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  /// Not içeriği bölümü
+  Widget _buildContentSection() {
+    return _buildSectionCard(
+      title: 'Not İçeriği',
+      icon: Icons.description,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 200),
+        child: AppTextField(
+          controller: _contentController,
+          hintText: 'Not içeriğinizi yazın...',
+          maxLines: 10,
+          onChanged: (value) {
+            context.read<AddNoteCubit>().contentChanged(value);
+          },
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'İçerik gerekli';
+            }
+            return null;
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Tarih aralığı bölümü
+  Widget _buildDateSection() {
+    return _buildSectionCard(
+      title: 'Tarih Aralığı',
+      icon: Icons.calendar_month,
+      child: Column(
+        children: [
+          _buildDateSelector(
+            context: context,
+            controller: _startDateController,
+            label: 'Başlangıç Tarihi',
+            icon: Icons.calendar_today,
+            onTap: () => _selectStartDate(context),
+          ),
+          const SizedBox(height: 12),
+          _buildDateSelector(
+            context: context,
+            controller: _endDateController,
+            label: 'Bitiş Tarihi',
+            icon: Icons.event,
+            onTap: () => _selectEndDate(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Notu sabitle bölümü
+  Widget _buildPinSection() {
+    return BlocBuilder<AddNoteCubit, AddNoteState>(
+      builder: (context, state) {
+        return _buildSectionCard(
+          title: 'Notu Sabitle',
+          icon: Icons.push_pin,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.push_pin,
+                  color: state.pinned ? Colors.amber : Colors.white70,
+                  size: 24,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Bu notu listenin üstünde göster',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        state.pinned ? 'Not sabitlendi' : 'Not sabitlenmedi',
+                        style: TextStyle(
+                          color: state.pinned ? Colors.amber : Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: state.pinned,
+                  onChanged: (value) {
+                    context.read<AddNoteCubit>().pinnedChanged(pinned: value);
+                  },
+                  activeColor: Colors.amber,
+                  activeTrackColor: Colors.amber.withValues(alpha: 0.3),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Etiketler bölümü
+  Widget _buildTagsSection() {
+    return BlocBuilder<AddNoteCubit, AddNoteState>(
+      builder: (context, state) {
+        return _buildSectionCard(
+          title: 'Etiketler',
+          icon: Icons.label,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (state.tags.isNotEmpty) ...[
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children:
+                      state.tags
+                          .map(
+                            (tag) => Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.blue.withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    tag.displayName,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  GestureDetector(
+                                    onTap: () {
+                                      context.read<AddNoteCubit>().tagRemoved(
+                                        tag,
+                                      );
+                                    },
+                                    child: const Icon(
+                                      Icons.close,
+                                      size: 16,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                          .toList(),
+                ),
+                const SizedBox(height: 16),
+              ],
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _showTagSelector(context),
+                  icon: const Icon(Icons.add_circle_outline),
+                  label: Text(
+                    state.tags.isEmpty ? 'Etiket Ekle' : 'Başka Etiket Ekle',
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Kaydet butonu bölümü
+  Widget _buildSaveButton() {
+    return BlocBuilder<AddNoteCubit, AddNoteState>(
+      builder: (context, state) {
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.blue.withValues(alpha: 0.8),
+                Colors.purple.withValues(alpha: 0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: AppElevatedButton(
+            onPressed:
+                state.status == AddNoteStatus.loading || !state.isValid
+                    ? null
+                    : () => _saveNote(context, state),
+            child:
+                state.status == AddNoteStatus.loading
+                    ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                    : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.save, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Notu Kaydet',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+          ),
+        );
+      },
+    );
   }
 }

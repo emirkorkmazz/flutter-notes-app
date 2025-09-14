@@ -421,7 +421,6 @@ class _HomeViewState extends State<HomeView> {
   ) {
     showDialog<void>(
       context: context,
-      barrierDismissible: true,
       builder: (context) => AiSuggestionDialog(aiSuggestion: aiSuggestion),
     );
   }

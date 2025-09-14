@@ -63,7 +63,7 @@ class AddNoteCubit extends Cubit<AddNoteState> {
   }
 
   /// Sabitleme durumu değiştiğinde
-  void pinnedChanged(bool pinned) {
+  void pinnedChanged({required bool pinned}) {
     emit(
       state.copyWith(
         pinned: pinned,

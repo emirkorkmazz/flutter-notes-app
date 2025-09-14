@@ -32,7 +32,7 @@ class ConnectivityService {
       debugPrint(
         '🌐 İlk bağlantı durumu: ${_isConnected ? "Bağlı" : "Bağlı değil"}',
       );
-    } catch (e) {
+    } on Exception catch (e) {
       _isConnected = false;
       _connectionController.add(_isConnected);
       debugPrint('🌐 İlk bağlantı kontrolü başarısız: $e');
@@ -42,7 +42,7 @@ class ConnectivityService {
     try {
       _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
       debugPrint('📡 Connectivity plugin başlatıldı');
-    } catch (e) {
+    } on Exception catch (e) {
       debugPrint('⚠️ Connectivity plugin hatası: $e');
       // Plugin çalışmıyorsa periyodik kontrol yap
       _startPeriodicCheck();
@@ -103,12 +103,12 @@ class ConnectivityService {
       // Google DNS'e ping at
       final result = await InternetAddress.lookup('google.com');
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-    } catch (e) {
+    } on SocketException {
       try {
         // Alternatif: CloudFlare DNS
         final result = await InternetAddress.lookup('1.1.1.1');
         return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-      } catch (e) {
+      } on SocketException catch (e) {
         debugPrint('İnternet bağlantısı testi başarısız: $e');
         return false;
       }

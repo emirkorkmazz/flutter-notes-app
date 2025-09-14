@@ -124,9 +124,8 @@ List<RouteBase> get _routes {
         if (startDateRaw != null && startDateRaw.isNotEmpty) {
           try {
             final date = DateTime.parse(startDateRaw);
-            startDate =
-                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-          } catch (e) {
+            startDate = DateFormatter.formatToDisplayFormat(date);
+          } on FormatException {
             startDate = startDateRaw; // Parse edilemezse orijinal değeri kullan
           }
         }
@@ -134,9 +133,8 @@ List<RouteBase> get _routes {
         if (endDateRaw != null && endDateRaw.isNotEmpty) {
           try {
             final date = DateTime.parse(endDateRaw);
-            endDate =
-                '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-          } catch (e) {
+            endDate = DateFormatter.formatToDisplayFormat(date);
+          } on FormatException {
             endDate = endDateRaw; // Parse edilemezse orijinal değeri kullan
           }
         }

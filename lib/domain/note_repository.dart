@@ -119,7 +119,6 @@ class NoteRepository implements INoteRepository {
   }) async {
     // Önce local'e kaydet
     final newNote = NoteModel(
-      id: null, // Local'de server ID yok
       title: title,
       content: content,
       startDate: startDate,
@@ -146,10 +145,7 @@ class NoteRepository implements INoteRepository {
         if (response.response.statusCode == 201) {
           // Server'da başarıyla oluşturuldu, local'e sync olarak kaydet
           final serverNote = newNote.copyWith(id: response.data.data?.id);
-          await localNoteRepository.saveLocalNote(
-            serverNote,
-            syncStatus: 'synced',
-          );
+          await localNoteRepository.saveLocalNote(serverNote);
           return Result.success(response.data);
         } else {
           // Server hatası, local'e pending olarak kaydet
@@ -235,10 +231,7 @@ class NoteRepository implements INoteRepository {
 
         if (response.response.statusCode == 200) {
           // Server'da başarıyla güncellendi, local'e sync olarak kaydet
-          await localNoteRepository.updateLocalNote(
-            updatedNote,
-            syncStatus: 'synced',
-          );
+          await localNoteRepository.updateLocalNote(updatedNote);
           return Result.success(response.data);
         } else {
           // Server hatası, local'e pending olarak kaydet

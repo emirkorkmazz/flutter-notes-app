@@ -131,7 +131,7 @@ class EditNoteCubit extends Cubit<EditNoteState> {
   }
 
   /// Sabitleme durumu değiştiğinde
-  void pinnedChanged(bool pinned) {
+  void pinnedChanged({required bool pinned}) {
     final hasChanges = _hasChanges(
       state.title,
       state.content,

@@ -180,14 +180,13 @@ class LocalNoteRepository implements ILocalNoteRepository {
             if (existingNote.syncStatus == 'synced') {
               final updatedNote = LocalNoteModel.fromNoteModel(
                 serverNote,
-                syncStatus: 'synced',
               ).copyWith(id: existingNote.id);
               await localDatabaseClient.updateNote(updatedNote);
             }
           } else {
             // Yeni not ise ekle
             await localDatabaseClient.insertNote(
-              LocalNoteModel.fromNoteModel(serverNote, syncStatus: 'synced'),
+              LocalNoteModel.fromNoteModel(serverNote),
             );
           }
 

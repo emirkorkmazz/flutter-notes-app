@@ -72,7 +72,7 @@ class AppNoteCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Container(
+        child: DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -80,19 +80,17 @@ class AppNoteCard extends StatelessWidget {
               colors: [Colors.white, Colors.grey.shade50],
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade200, width: 1),
+            border: Border.all(color: Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
-                spreadRadius: 0,
               ),
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 6,
                 offset: const Offset(0, 2),
-                spreadRadius: 0,
               ),
             ],
           ),
@@ -143,7 +141,6 @@ class AppNoteCard extends StatelessWidget {
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
                                         color: Colors.blue.shade100,
-                                        width: 1,
                                       ),
                                     ),
                                     child: Row(
@@ -156,7 +153,7 @@ class AppNoteCard extends StatelessWidget {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          _formatNoteDate(
+                                          DateFormatter.formatDateRange(
                                             note.startDate,
                                             note.endDate,
                                             note.createdAt,
@@ -195,16 +192,16 @@ class AppNoteCard extends StatelessWidget {
                                           ),
                                         ],
                                       ),
-                                      child: Row(
+                                      child: const Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(
+                                          Icon(
                                             Icons.push_pin_rounded,
                                             size: 14,
                                             color: Colors.white,
                                           ),
-                                          const SizedBox(width: 4),
-                                          const Text(
+                                          SizedBox(width: 4),
+                                          Text(
                                             'Sabitli',
                                             style: TextStyle(
                                               fontSize: 12,
@@ -236,10 +233,7 @@ class AppNoteCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.grey.shade50,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.grey.shade200,
-                            width: 1,
-                          ),
+                          border: Border.all(color: Colors.grey.shade200),
                         ),
                         child: Text(
                           note.content!,
@@ -409,7 +403,7 @@ class AppNoteCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade200, width: 1),
+          border: Border.all(color: Colors.grey.shade200),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -440,7 +434,7 @@ class AppNoteCard extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: tagColor.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: tagColor.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
             color: tagColor.withValues(alpha: 0.1),
@@ -503,94 +497,5 @@ class AppNoteCard extends StatelessWidget {
       case NoteTag.travel:
         return const Color(0xFF06B6D4); // Cyan
     }
-  }
-
-  /// Not tarihlerini formatla
-  String _formatNoteDate(
-    String? startDate,
-    String? endDate,
-    String? createdAt,
-  ) {
-    // Eğer startDate varsa, not tarihini göster
-    if (startDate != null && startDate.isNotEmpty) {
-      try {
-        final start = DateTime.parse(startDate);
-        final startFormatted = _formatDate(start);
-
-        if (endDate != null && endDate.isNotEmpty) {
-          final end = DateTime.parse(endDate);
-          final endFormatted = _formatDate(end);
-
-          // Eğer başlangıç ve bitiş tarihi aynıysa tek tarih göster
-          if (startFormatted == endFormatted) {
-            return startFormatted;
-          }
-
-          return '$startFormatted - $endFormatted';
-        }
-
-        return startFormatted;
-      } on FormatException {
-        return 'Tarih belirtilmemiş';
-      }
-    }
-
-    // startDate yoksa, oluşturulma tarihini göster (internet yokken eklenen notlar için)
-    if (createdAt != null && createdAt.isNotEmpty) {
-      try {
-        final created = DateTime.parse(createdAt);
-        return _formatDate(created);
-      } on FormatException {
-        return 'Tarih belirtilmemiş';
-      }
-    }
-
-    return 'Tarih belirtilmemiş';
-  }
-
-  /// Tarihi Türkçe formatta göster
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final tomorrow = today.add(const Duration(days: 1));
-    final dateOnly = DateTime(date.year, date.month, date.day);
-
-    // Bugün, dün, yarın kontrolü
-    if (dateOnly.isAtSameMomentAs(today)) {
-      return 'Bugün';
-    } else if (dateOnly.isAtSameMomentAs(yesterday)) {
-      return 'Dün';
-    } else if (dateOnly.isAtSameMomentAs(tomorrow)) {
-      return 'Yarın';
-    }
-
-    // Ay isimleri
-    const monthNames = [
-      '',
-      'Ocak',
-      'Şubat',
-      'Mart',
-      'Nisan',
-      'Mayıs',
-      'Haziran',
-      'Temmuz',
-      'Ağustos',
-      'Eylül',
-      'Ekim',
-      'Kasım',
-      'Aralık',
-    ];
-
-    final day = date.day;
-    final month = monthNames[date.month];
-    final year = date.year;
-
-    // Bu yıl ise yılı gösterme
-    if (year == now.year) {
-      return '$day $month';
-    }
-
-    return '$day $month $year';
   }
 }

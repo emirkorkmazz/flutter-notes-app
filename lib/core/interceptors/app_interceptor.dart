@@ -61,12 +61,12 @@ class AppInterceptor extends Interceptor {
             final dio = Dio();
             final response = await dio.fetch<dynamic>(options);
             return handler.resolve(response);
-          } catch (e) {
+          } on DioException {
             // Yeniden deneme başarısız olursa orijinal hatayı döndür
             return handler.next(dioException);
           }
         }
-      } catch (e) {
+      } on Exception {
         // Token yenileme başarısız olursa orijinal hatayı döndür
         return handler.next(dioException);
       }
